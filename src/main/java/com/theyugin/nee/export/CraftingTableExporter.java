@@ -55,12 +55,12 @@ public class CraftingTableExporter {
         } else if (AE2 && oInput instanceof appeng.api.recipes.IIngredient) {
             try {
                 processInput(conn, recipeBuilder, slot, ((appeng.api.recipes.IIngredient) oInput).getItemStackSet());
-            } catch (appeng.api.exceptions.RegistrationError | appeng.api.exceptions.MissingIngredientError ex) {
+            } catch (Exception ex) {
                 NotEnoughExports.warn(ex.toString());
             }
         } else if (oInput != null && oInput.getClass().isArray()) {
             Object[] unknownArrayInput = (Object[]) oInput;
-            NotEnoughExports.warn("Unknown array type: " + Arrays.stream(unknownArrayInput).collect(Collectors.toList()).toString());
+            NotEnoughExports.warn("Unknown array type: " + Arrays.stream(unknownArrayInput).collect(Collectors.toList()));
         } else {
             if (oInput != null)
                 NotEnoughExports.warn("Unknown input type: " + oInput.getClass().getCanonicalName() + "\n\ttoString: " + oInput);
@@ -137,6 +137,8 @@ public class CraftingTableExporter {
                 }
             }
         }
-        NotEnoughExports.warn(unhandledRecipes.toString());
+        if (unhandledRecipes.size() > 0) {
+            NotEnoughExports.warn("Unhandled recipe types: " + unhandledRecipes);
+        }
     }
 }
