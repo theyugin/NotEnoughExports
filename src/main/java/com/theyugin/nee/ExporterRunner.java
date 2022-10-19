@@ -2,44 +2,40 @@ package com.theyugin.nee;
 
 import com.theyugin.nee.export.CraftingTableExporter;
 
-import java.io.File;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
+import com.theyugin.nee.export.GregTechExporter;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
 
 public class ExporterRunner implements Runnable {
-    private static final List<String> tableDefs = new ArrayList<String>() {{
-        add("create table item (unlocalizedName text primary key, localizedName text)");
-        add("create table fluid (unlocalizedName text primary key, localizedName text)");
-        add("create table ore (name text primary key)");
-        add("create table oreItem (item text references item, name text references ore, primary key (item, name))");
+    private void populateDatabase(Connection conn) throws SQLException {
+        StringBuilder statementBuffer = new StringBuilder();
 
-        add("create table catalystType (name text primary key)");
-        add("create table catalystTypeItem (name text references catalystType, item text references item, primary key (name, item))");
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("dbdef.sql")) {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                statementBuffer.append(line);
+            }
+            bufferedReader.readLine();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
-        add("create table shapedRecipe (id integer primary key, output text references item)");
-        add("create table shapedRecipeInputItem (recipe integer references shapedRecipe, item text references item, slot int, primary key (recipe, item, slot))");
-        add("create table shapedRecipeInputOre (recipe integer references shapedRecipe, ore text references ore, slot int, primary key(recipe, ore, slot))");
+        Statement stmt = conn.createStatement();
+        for (String s : statementBuffer.toString().split(";")) {
+            stmt.addBatch(s);
+        }
 
-        add("create table shapelessRecipe (id integer primary key, output text references item)");
-        add("create table shapelessRecipeInputItem (recipe integer references shapelessRecipe, item text references item, primary key (recipe, item))");
-        add("create table shapelessRecipeInputOre (recipe integer references shapelessRecipe, ore text references ore, primary key(recipe, ore))");
-
-        add("create table gregtechRecipe (id integer primary key, eut integer, duration integer, config integer, catalyst text references catalystType)");
-        add("create table gregtechRecipeInputItem (recipe integer references gregtechRecipe, item text references item, slot integer, primary key (recipe, item, slot))");
-        add("create table gregtechRecipeInputFluid (recipe integer references gregtechRecipe, fluid text references fluid, slot integer, primary key (recipe, fluid, slot))");
-        add("create table gregtechRecipeInputOre (recipe integer references gregtechRecipe, ore text references ore, slot integer, primary key (recipe, ore, slot))");
-        add("create table gregtechRecipeOutputItem (recipe integer references gregtechRecipe, item text references item, slot integer, primary key (recipe, item, slot))");
-        add("create table gregtechRecipeOutputFluid (recipe integer references gregtechRecipe, fluid text references fluid, slot integer, primary key (recipe, fluid, slot))");
-    }};
+        stmt.executeBatch();
+    }
 
     public void run() {
-
         SQLiteConfig sqLiteConfig = new SQLiteConfig();
         sqLiteConfig.enforceForeignKeys(true);
         sqLiteConfig.setJournalMode(SQLiteConfig.JournalMode.WAL);
@@ -55,12 +51,9 @@ public class ExporterRunner implements Runnable {
         ds.setUrl("jdbc:sqlite:nee.sqlite");
 
         try (Connection conn = ds.getConnection()) {
-            Statement stmt = conn.createStatement();
-            for (String tableDef : tableDefs) {
-                stmt.addBatch(tableDef);
-            }
-            stmt.executeBatch();
+            populateDatabase(conn);
             CraftingTableExporter.run(conn);
+            GregTechExporter.run(conn);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

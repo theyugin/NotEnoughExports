@@ -1,39 +1,37 @@
-package com.theyugin.nee.data;
+package com.theyugin.nee.sql;
 
-import com.theyugin.nee.util.ItemInputMap;
-import com.theyugin.nee.util.OreInputMap;
-
+import com.theyugin.nee.data.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Map;
 
 public class ShapelessRecipeBuilder implements ICraftingTableRecipeBuilder<ShapelessRecipe> {
-    private final Item output;
-    private final ItemInputMap itemInputMap = new ItemInputMap();
-    private final OreInputMap oreInputMap = new OreInputMap();
+    private Item output;
+    private final ItemStackMap itemStackMap = new ItemStackMap();
+    private final OreStackMap oreStackMap = new OreStackMap();
 
-    private ShapelessRecipeBuilder(Item output) {
+    public ShapelessRecipeBuilder setOutput(Item output) {
         this.output = output;
-    }
-
-    public static ShapelessRecipeBuilder fromOutput(Item output) {
-        return new ShapelessRecipeBuilder(output);
+        return this;
     }
 
     public ShapelessRecipeBuilder addItemInput(Item item, int slot) {
-        itemInputMap.accumulate(slot, item);
+        itemStackMap.accumulate(slot, item);
         return this;
     }
 
     public ShapelessRecipeBuilder addOreInput(Ore ore, int slot) {
-        oreInputMap.accumulate(slot, ore);
+        oreStackMap.accumulate(slot, ore);
         return this;
     }
 
     public ShapelessRecipe save(Connection conn) throws SQLException {
+        if (this.output == null) {
+            throw new SQLException("unset parameters");
+        }
+
         PreparedStatement stmt = conn.prepareStatement("insert into shapelessRecipe (output) values (?)");
         stmt.setString(1, output.unlocalizedName);
         stmt.executeUpdate();
@@ -42,8 +40,8 @@ public class ShapelessRecipeBuilder implements ICraftingTableRecipeBuilder<Shape
         int recipeId = rs.getInt(1);
 
         stmt = conn.prepareStatement("insert or ignore into shapelessRecipeInputItem (recipe, item) values (?, ?)");
-        for (Map.Entry<Integer, List<Item>> integerListEntry : itemInputMap.entrySet()) {
-            for (Item item : integerListEntry.getValue()) {
+        for (Map.Entry<Integer, IStack<Item>> integerListEntry : itemStackMap.entrySet()) {
+            for (Item item : integerListEntry.getValue().contents()) {
                 stmt.setInt(1, recipeId);
                 stmt.setString(2, item.unlocalizedName);
                 stmt.addBatch();
@@ -53,8 +51,8 @@ public class ShapelessRecipeBuilder implements ICraftingTableRecipeBuilder<Shape
         stmt.executeBatch();
 
         stmt = conn.prepareStatement("insert or ignore into shapelessRecipeInputOre (recipe, ore) values (?, ?)");
-        for (Map.Entry<Integer, List<Ore>> integerListEntry : oreInputMap.entrySet()) {
-            for (Ore ore : integerListEntry.getValue()) {
+        for (Map.Entry<Integer, IStack<Ore>> integerListEntry : oreStackMap.entrySet()) {
+            for (Ore ore : integerListEntry.getValue().contents()) {
                 stmt.setInt(1, recipeId);
                 stmt.setString(2, ore.name);
                 stmt.addBatch();
@@ -62,6 +60,6 @@ public class ShapelessRecipeBuilder implements ICraftingTableRecipeBuilder<Shape
             }
         }
         stmt.executeBatch();
-        return new ShapelessRecipe(itemInputMap, oreInputMap, output);
+        return new ShapelessRecipe(itemStackMap, oreStackMap, output);
     }
 }

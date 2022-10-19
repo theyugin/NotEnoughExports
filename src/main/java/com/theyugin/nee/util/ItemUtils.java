@@ -1,14 +1,23 @@
 package com.theyugin.nee.util;
 
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.oredict.OreDictionary;
-
-import java.util.*;
-
 import static com.theyugin.nee.LoadedMods.FORESTRY;
 import static com.theyugin.nee.LoadedMods.IC2;
 
+import java.util.*;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.oredict.OreDictionary;
+
 public class ItemUtils {
+    public static String getUnlocalizedNameSafe(ItemStack itemStack) {
+        return itemStack.getItem().getUnlocalizedName() + ":" + itemStack.getItemDamage();
+    }
+
+    public static String getLocalizedNameSafe(ItemStack itemStack) {
+        return ItemUtils.isWildcard(itemStack)
+                ? itemStack.getItem().getUnlocalizedName() + " wildcard"
+                : itemStack.getDisplayName();
+    }
+
     public static String getOreDictValue(List<ItemStack> itemStacks) {
         List<Set<String>> oreSets = new ArrayList<>();
         for (ItemStack itemStack : itemStacks) {

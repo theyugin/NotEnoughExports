@@ -1,4 +1,4 @@
-package com.theyugin.nee.data;
+package com.theyugin.nee.sql;
 
 import java.sql.Connection;
 import java.sql.SQLException;

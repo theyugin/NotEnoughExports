@@ -1,5 +1,7 @@
-package com.theyugin.nee.data;
+package com.theyugin.nee.sql;
 
+import com.theyugin.nee.data.Item;
+import com.theyugin.nee.data.Ore;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -7,15 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OreBuilder implements IDataBuilder<Ore> {
-    private final String name;
+    private String name;
     private final List<Item> items = new ArrayList<>();
 
-    private OreBuilder(String name) {
+    public OreBuilder setName(String name) {
         this.name = name;
-    }
-
-    public static OreBuilder fromName(String name) {
-        return new OreBuilder(name);
+        return this;
     }
 
     public OreBuilder addItem(Item item) {
@@ -24,6 +23,9 @@ public class OreBuilder implements IDataBuilder<Ore> {
     }
 
     public Ore save(Connection conn) throws SQLException {
+        if (this.name == null) {
+            throw new SQLException("unset parameters");
+        }
         PreparedStatement stmt = conn.prepareStatement("insert or ignore into ore (name) values (?)");
         stmt.setString(1, this.name);
         stmt.executeUpdate();
