@@ -1,14 +1,12 @@
 package com.theyugin.nee;
 
 import com.theyugin.nee.export.CraftingTableExporter;
-
+import com.theyugin.nee.export.GregTechExporter;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-
-import com.theyugin.nee.export.GregTechExporter;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
 

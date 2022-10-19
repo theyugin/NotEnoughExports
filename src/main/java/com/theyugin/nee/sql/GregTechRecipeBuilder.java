@@ -1,7 +1,6 @@
 package com.theyugin.nee.sql;
 
 import com.theyugin.nee.data.*;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -87,7 +86,8 @@ public class GregTechRecipeBuilder implements IMachineRecipeBuilder<GregTechReci
         stmt.setString(1, machineType);
         stmt.executeUpdate();
 
-        stmt = conn.prepareStatement("insert or ignore into gregtechRecipe (voltage, duration, amperage, config, catalyst) values (?, ?, ?, ?, ?)");
+        stmt = conn.prepareStatement(
+                "insert or ignore into gregtechRecipe (voltage, duration, amperage, config, catalyst) values (?, ?, ?, ?, ?)");
         stmt.setInt(1, voltage);
         stmt.setInt(2, duration);
         stmt.setInt(3, amperage);
@@ -99,7 +99,8 @@ public class GregTechRecipeBuilder implements IMachineRecipeBuilder<GregTechReci
         int recipeId = rs.getInt(1);
 
         if (!inputItemStackMap.isEmpty()) {
-            stmt = conn.prepareStatement("insert or ignore into gregtechRecipeInputItem (recipe, item, slot, amount) values (?, ?, ?, ?)");
+            stmt = conn.prepareStatement(
+                    "insert or ignore into gregtechRecipeInputItem (recipe, item, slot, amount) values (?, ?, ?, ?)");
             for (Map.Entry<Integer, IStack<Item>> inputISEntry : inputItemStackMap.entrySet()) {
                 int slot = inputISEntry.getKey();
                 IStack<Item> stack = inputISEntry.getValue();
@@ -116,7 +117,8 @@ public class GregTechRecipeBuilder implements IMachineRecipeBuilder<GregTechReci
         }
 
         if (!inputFluidStackMap.isEmpty()) {
-            stmt = conn.prepareStatement("insert or ignore into gregtechRecipeInputFluid (recipe, fluid, slot, amount) values (?, ?, ?, ?)");
+            stmt = conn.prepareStatement(
+                    "insert or ignore into gregtechRecipeInputFluid (recipe, fluid, slot, amount) values (?, ?, ?, ?)");
             for (Map.Entry<Integer, IStack<Fluid>> inputFSEntry : inputFluidStackMap.entrySet()) {
                 int slot = inputFSEntry.getKey();
                 IStack<Fluid> stack = inputFSEntry.getValue();
@@ -133,7 +135,8 @@ public class GregTechRecipeBuilder implements IMachineRecipeBuilder<GregTechReci
         }
 
         if (!outputItemStackMap.isEmpty()) {
-            stmt = conn.prepareStatement("insert or ignore into gregtechRecipeOutputItem (recipe, item, slot, amount) values (?, ?, ?, ?)");
+            stmt = conn.prepareStatement(
+                    "insert or ignore into gregtechRecipeOutputItem (recipe, item, slot, amount) values (?, ?, ?, ?)");
             for (Map.Entry<Integer, IStack<Item>> outputISEntry : outputItemStackMap.entrySet()) {
                 int slot = outputISEntry.getKey();
                 IStack<Item> stack = outputISEntry.getValue();
@@ -150,7 +153,8 @@ public class GregTechRecipeBuilder implements IMachineRecipeBuilder<GregTechReci
         }
 
         if (!outputFluidStackMap.isEmpty()) {
-            stmt = conn.prepareStatement("insert or ignore into gregtechRecipeOutputFluid (recipe, fluid, slot, amount) values (?, ?, ?, ?)");
+            stmt = conn.prepareStatement(
+                    "insert or ignore into gregtechRecipeOutputFluid (recipe, fluid, slot, amount) values (?, ?, ?, ?)");
             for (Map.Entry<Integer, IStack<Fluid>> outputFSEntry : outputFluidStackMap.entrySet()) {
                 int slot = outputFSEntry.getKey();
                 IStack<Fluid> stack = outputFSEntry.getValue();
@@ -166,6 +170,16 @@ public class GregTechRecipeBuilder implements IMachineRecipeBuilder<GregTechReci
             stmt.executeBatch();
         }
 
-        return new GregTechRecipe(machineType, inputItemStackMap, inputFluidStackMap, inputOreStackMap, outputItemStackMap, outputFluidStackMap, duration, amperage, voltage, config);
+        return new GregTechRecipe(
+                machineType,
+                inputItemStackMap,
+                inputFluidStackMap,
+                inputOreStackMap,
+                outputItemStackMap,
+                outputFluidStackMap,
+                duration,
+                amperage,
+                voltage,
+                config);
     }
 }

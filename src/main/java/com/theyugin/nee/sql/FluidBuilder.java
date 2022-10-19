@@ -21,7 +21,8 @@ public class FluidBuilder implements IDataBuilder<Fluid> {
 
     @Override
     public Fluid save(Connection conn) throws SQLException {
-        PreparedStatement stmt = conn.prepareStatement("insert or ignore into fluid (unlocalizedName, localizedName) values (?, ?)");
+        PreparedStatement stmt =
+                conn.prepareStatement("insert or ignore into fluid (unlocalizedName, localizedName) values (?, ?)");
         stmt.setString(1, unlocalizedName);
         stmt.setString(2, localizedName);
         stmt.executeUpdate();
