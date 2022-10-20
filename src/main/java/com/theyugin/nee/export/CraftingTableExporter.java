@@ -6,6 +6,7 @@ import com.theyugin.nee.NotEnoughExports;
 import com.theyugin.nee.data.*;
 import com.theyugin.nee.sql.*;
 import com.theyugin.nee.util.ItemUtils;
+import com.theyugin.nee.util.StackRenderer;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
@@ -29,6 +30,7 @@ public class CraftingTableExporter {
                 Item item = new ItemBuilder()
                         .setLocalizedName(ItemUtils.getLocalizedNameSafe(itemStack))
                         .setUnlocalizedName(ItemUtils.getUnlocalizedNameSafe(itemStack))
+                        .setIcon(StackRenderer.renderIcon(itemStack))
                         .save(conn);
                 oreBuilder.addItem(item);
             }
@@ -44,6 +46,7 @@ public class CraftingTableExporter {
             Item item = new ItemBuilder()
                     .setLocalizedName(ItemUtils.getLocalizedNameSafe((ItemStack) oInput))
                     .setUnlocalizedName(ItemUtils.getUnlocalizedNameSafe((ItemStack) oInput))
+                    .setIcon(StackRenderer.renderIcon((ItemStack) oInput))
                     .save(conn);
             recipeBuilder.addItemInput(item, slot);
 
@@ -66,10 +69,10 @@ public class CraftingTableExporter {
         } else if (oInput instanceof ItemStack[]) {
             assignOreDict(conn, Arrays.asList((ItemStack[]) oInput), recipeBuilder, slot);
 
-        } else if (IC2 && oInput instanceof ic2.api.recipe.IRecipeInput) {
+        } else if (IC2.isLoaded() && oInput instanceof ic2.api.recipe.IRecipeInput) {
             assignOreDict(conn, ((ic2.api.recipe.IRecipeInput) oInput).getInputs(), recipeBuilder, slot);
 
-        } else if (AE2 && oInput instanceof appeng.api.recipes.IIngredient) {
+        } else if (AE2.isLoaded() && oInput instanceof appeng.api.recipes.IIngredient) {
             try {
                 processInput(conn, recipeBuilder, slot, ((appeng.api.recipes.IIngredient) oInput).getItemStackSet());
             } catch (Exception ex) {
@@ -105,9 +108,9 @@ public class CraftingTableExporter {
     }
 
     private static Object[] getShapedInputs(IRecipe recipe) {
-        if (AE2 && recipe instanceof appeng.recipes.game.ShapedRecipe) {
+        if (AE2.isLoaded() && recipe instanceof appeng.recipes.game.ShapedRecipe) {
             return ((appeng.recipes.game.ShapedRecipe) recipe).getInput();
-        } else if (IC2 && recipe instanceof ic2.core.AdvRecipe) {
+        } else if (IC2.isLoaded() && recipe instanceof ic2.core.AdvRecipe) {
             return ((ic2.core.AdvRecipe) recipe).input;
         } else if (recipe instanceof ShapedOreRecipe) {
             return ((ShapedOreRecipe) recipe).getInput();
@@ -118,9 +121,9 @@ public class CraftingTableExporter {
     }
 
     private static Object[] getShapelessInputs(IRecipe recipe) {
-        if (IC2 && recipe instanceof ic2.core.AdvShapelessRecipe) {
+        if (IC2.isLoaded() && recipe instanceof ic2.core.AdvShapelessRecipe) {
             return ((ic2.core.AdvShapelessRecipe) recipe).input;
-        } else if (AE2 && recipe instanceof appeng.recipes.game.ShapelessRecipe) {
+        } else if (AE2.isLoaded() && recipe instanceof appeng.recipes.game.ShapelessRecipe) {
             return ((appeng.recipes.game.ShapelessRecipe) recipe).getInput().toArray();
         } else if (recipe instanceof ShapelessOreRecipe) {
             return ((ShapelessOreRecipe) recipe).getInput().toArray();
@@ -146,6 +149,7 @@ public class CraftingTableExporter {
                     Item output = new ItemBuilder()
                             .setLocalizedName(ItemUtils.getLocalizedNameSafe(outputItemStack))
                             .setUnlocalizedName(ItemUtils.getUnlocalizedNameSafe(outputItemStack))
+                            .setIcon(StackRenderer.renderIcon(outputItemStack))
                             .save(conn);
 
                     ICraftingTableRecipeBuilder<?> recipeBuilder;

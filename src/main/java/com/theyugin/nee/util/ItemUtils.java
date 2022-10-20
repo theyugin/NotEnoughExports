@@ -8,6 +8,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 
 public class ItemUtils {
+
     public static String getUnlocalizedNameSafe(ItemStack itemStack) {
         return itemStack.getItem().getUnlocalizedName() + ":" + itemStack.getItemDamage();
     }
@@ -44,11 +45,11 @@ public class ItemUtils {
     }
 
     public static boolean isIC2InputItemStack(Object o) {
-        return IC2 && o instanceof ic2.api.recipe.IRecipeInput;
+        return IC2.isLoaded() && o instanceof ic2.api.recipe.IRecipeInput;
     }
 
     public static boolean isComb(ItemStack itemStack) {
-        return FORESTRY && itemStack.getItem() instanceof forestry.apiculture.items.ItemHoneycomb;
+        return FORESTRY.isLoaded() && itemStack.getItem() instanceof forestry.apiculture.items.ItemHoneycomb;
     }
 
     public static boolean isWildcard(ItemStack itemStack) {

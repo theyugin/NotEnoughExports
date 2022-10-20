@@ -1,7 +1,8 @@
 create table item
 (
     unlocalizedName text primary key,
-    localizedName   text
+    localizedName   text,
+    icon            blob
 ) without rowid;
 create table fluid
 (
@@ -103,6 +104,7 @@ create table gregtechRecipeOutputItem
     item   text references item,
     slot   integer,
     amount integer,
+    chance integer,
     primary key (recipe, item, slot)
 ) without rowid;
 create table gregtechRecipeOutputFluid

@@ -1,10 +1,29 @@
 package com.theyugin.nee;
 
-public abstract class LoadedMods {
-    public static boolean GREGTECH = false;
-    public static boolean IC2 = false;
-    public static boolean FORESTRY = false;
-    public static boolean AE2 = false;
-    public static boolean THAUMCRAFT = false;
-    public static boolean EIO = false;
+import cpw.mods.fml.common.Loader;
+
+public enum LoadedMods {
+    GREGTECH("gregtech"),
+    IC2("IC2"),
+    AE2("appliedenergistics2"),
+    FORESTRY("Forestry"),
+    ENDERIO("enderio"),
+    GTPLUSLUS("miscutils"),
+    ;
+    private final String modId;
+    private boolean isLoaded = false;
+
+    LoadedMods(String modId) {
+        this.modId = modId;
+    }
+
+    public boolean isLoaded() {
+        return isLoaded;
+    }
+
+    public static void checkMods() {
+        for (LoadedMods mod : LoadedMods.values()) {
+            if (Loader.isModLoaded(mod.modId)) mod.isLoaded = true;
+        }
+    }
 }

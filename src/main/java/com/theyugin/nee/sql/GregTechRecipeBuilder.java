@@ -55,6 +55,12 @@ public class GregTechRecipeBuilder implements IMachineRecipeBuilder<GregTechReci
         return this;
     }
 
+    @Override
+    public ICraftingTableRecipeBuilder<GregTechRecipe> addItemOutput(Item item, int slot, int amount, int chance) {
+        outputItemStackMap.accumulate(slot, item, amount, chance);
+        return null;
+    }
+
     public GregTechRecipeBuilder addFluidOutput(Fluid fluid, int slot, int amount) {
         outputFluidStackMap.accumulate(slot, fluid, amount);
         return this;
@@ -136,7 +142,7 @@ public class GregTechRecipeBuilder implements IMachineRecipeBuilder<GregTechReci
 
         if (!outputItemStackMap.isEmpty()) {
             stmt = conn.prepareStatement(
-                    "insert or ignore into gregtechRecipeOutputItem (recipe, item, slot, amount) values (?, ?, ?, ?)");
+                    "insert or ignore into gregtechRecipeOutputItem (recipe, item, slot, amount, chance) values (?, ?, ?, ?, ?)");
             for (Map.Entry<Integer, IStack<Item>> outputISEntry : outputItemStackMap.entrySet()) {
                 int slot = outputISEntry.getKey();
                 IStack<Item> stack = outputISEntry.getValue();
@@ -145,6 +151,7 @@ public class GregTechRecipeBuilder implements IMachineRecipeBuilder<GregTechReci
                     stmt.setString(2, item.unlocalizedName);
                     stmt.setInt(3, slot);
                     stmt.setInt(4, stack.amount());
+                    stmt.setInt(5, stack.chance());
                     stmt.addBatch();
                     stmt.clearParameters();
                 }

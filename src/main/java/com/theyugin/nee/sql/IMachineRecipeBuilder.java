@@ -13,5 +13,7 @@ public interface IMachineRecipeBuilder<T> extends ICraftingTableRecipeBuilder<T>
 
     ICraftingTableRecipeBuilder<T> addItemOutput(Item item, int slot, int amount);
 
+    ICraftingTableRecipeBuilder<T> addItemOutput(Item item, int slot, int amount, int chances);
+
     ICraftingTableRecipeBuilder<T> addFluidOutput(Fluid item, int slot, int amount);
 }

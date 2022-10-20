@@ -4,11 +4,11 @@ import com.theyugin.nee.sql.FluidBuilder;
 import com.theyugin.nee.sql.GregTechRecipeBuilder;
 import com.theyugin.nee.sql.ItemBuilder;
 import com.theyugin.nee.util.ItemUtils;
+import com.theyugin.nee.util.StackRenderer;
 import gregtech.api.util.GT_Recipe;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.ListIterator;
+import java.util.*;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
@@ -43,6 +43,7 @@ public class GregTechExporter {
                                 new ItemBuilder()
                                         .setUnlocalizedName(ItemUtils.getUnlocalizedNameSafe(itemStack))
                                         .setLocalizedName(ItemUtils.getLocalizedNameSafe(itemStack))
+                                        .setIcon(StackRenderer.renderIcon(itemStack))
                                         .save(conn),
                                 slot,
                                 itemStack.stackSize);
@@ -77,9 +78,11 @@ public class GregTechExporter {
                                 new ItemBuilder()
                                         .setUnlocalizedName(ItemUtils.getUnlocalizedNameSafe(itemStack))
                                         .setLocalizedName(ItemUtils.getLocalizedNameSafe(itemStack))
+                                        .setIcon(StackRenderer.renderIcon(itemStack))
                                         .save(conn),
                                 slot,
-                                itemStack.stackSize);
+                                itemStack.stackSize,
+                                gtRecipe.getOutputChance(slot));
                     }
 
                     ListIterator<FluidStack> fluidOutputsIterator =

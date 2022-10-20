@@ -4,7 +4,6 @@ import com.theyugin.nee.LoadedMods;
 import com.theyugin.nee.input.KeyBindings;
 import com.theyugin.nee.input.KeyBindingsHandler;
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.*;
 
 public class ClientProxy extends CommonProxy {
@@ -17,10 +16,6 @@ public class ClientProxy extends CommonProxy {
     }
 
     public void postInit(FMLPostInitializationEvent event) {
-        LoadedMods.GREGTECH = Loader.isModLoaded("gregtech");
-        LoadedMods.AE2 = Loader.isModLoaded("appliedenergistics2");
-        LoadedMods.IC2 = Loader.isModLoaded("IC2");
-        LoadedMods.EIO = Loader.isModLoaded("enderio");
-        LoadedMods.FORESTRY = Loader.isModLoaded("Forestry");
+        LoadedMods.checkMods();
     }
 }
