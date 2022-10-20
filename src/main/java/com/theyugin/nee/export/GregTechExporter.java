@@ -1,8 +1,12 @@
 package com.theyugin.nee.export;
 
-import com.theyugin.nee.sql.FluidBuilder;
-import com.theyugin.nee.sql.GregTechRecipeBuilder;
-import com.theyugin.nee.sql.ItemBuilder;
+import com.theyugin.nee.data.Fluid;
+import com.theyugin.nee.data.FluidStackMap;
+import com.theyugin.nee.data.Item;
+import com.theyugin.nee.data.ItemStackMap;
+import com.theyugin.nee.sql.FluidDAO;
+import com.theyugin.nee.sql.GregTechRecipeDAO;
+import com.theyugin.nee.sql.ItemDAO;
 import com.theyugin.nee.util.ItemUtils;
 import com.theyugin.nee.util.StackRenderer;
 import gregtech.api.util.GT_Recipe;
@@ -14,16 +18,26 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
 
 public class GregTechExporter {
-    public static void run(Connection conn) throws SQLException {
+    private final ItemDAO itemDAO;
+    private final GregTechRecipeDAO gregTechRecipeDAO;
+    private final FluidDAO fluidDAO;
+
+    public GregTechExporter(Connection conn) {
+        itemDAO = new ItemDAO(conn);
+        gregTechRecipeDAO = new GregTechRecipeDAO(conn);
+        fluidDAO = new FluidDAO(conn);
+    }
+
+    public void run() throws SQLException {
         for (GT_Recipe.GT_Recipe_Map gtRecipeMap : GT_Recipe.GT_Recipe_Map.sMappings) {
             for (GT_Recipe gtRecipe : gtRecipeMap.mRecipeList) {
                 if (!gtRecipe.mFakeRecipe && gtRecipe.mEnabled) {
-                    GregTechRecipeBuilder gregTechRecipeBuilder = new GregTechRecipeBuilder()
-                            .setAmperage(gtRecipeMap.mAmperage)
-                            .setDuration(gtRecipe.mDuration)
-                            .setVoltage(gtRecipe.mEUt)
-                            .setMachineType(gtRecipeMap.mUnlocalizedName);
-                    int circuit = 0;
+
+                    int config = 0;
+                    ItemStackMap inputItemStackMap = new ItemStackMap();
+                    FluidStackMap inputFluidStackMap = new FluidStackMap();
+                    ItemStackMap outputItemStackMap = new ItemStackMap();
+                    FluidStackMap outputFluidStackMap = new FluidStackMap();
 
                     ListIterator<ItemStack> itemInputsIterator =
                             Arrays.asList(gtRecipe.mInputs).listIterator();
@@ -36,35 +50,19 @@ public class GregTechExporter {
                         if (itemStack.getUnlocalizedName().equals("gt.integrated_circuit")
                                 && itemStack.getItemDamage() != 0
                                 && itemStack.getItemDamage() != OreDictionary.WILDCARD_VALUE) {
-                            circuit = itemStack.getItemDamage();
+                            config = itemStack.getItemDamage();
                             continue;
                         }
-                        gregTechRecipeBuilder.addItemInput(
-                                new ItemBuilder()
-                                        .setUnlocalizedName(ItemUtils.getUnlocalizedNameSafe(itemStack))
-                                        .setLocalizedName(ItemUtils.getLocalizedNameSafe(itemStack))
-                                        .setIcon(StackRenderer.renderIcon(itemStack))
-                                        .save(conn),
-                                slot,
-                                itemStack.stackSize);
+                        Item item = itemDAO.create(
+                                ItemUtils.getUnlocalizedNameSafe(itemStack),
+                                ItemUtils.getLocalizedNameSafe(itemStack),
+                                StackRenderer.renderIcon(itemStack));
+                        inputItemStackMap.accumulate(slot, item, itemStack.stackSize);
                     }
 
                     ListIterator<FluidStack> fluidInputsIterator =
                             Arrays.asList(gtRecipe.mFluidInputs).listIterator();
-                    while (fluidInputsIterator.hasNext()) {
-                        int slot = fluidInputsIterator.nextIndex();
-                        FluidStack fluidStack = fluidInputsIterator.next();
-                        if (fluidStack == null) {
-                            continue;
-                        }
-                        gregTechRecipeBuilder.addFluidInput(
-                                new FluidBuilder()
-                                        .setUnlocalizedName(fluidStack.getUnlocalizedName())
-                                        .setLocalizedName(fluidStack.getLocalizedName())
-                                        .save(conn),
-                                slot,
-                                fluidStack.amount);
-                    }
+                    setFluidStacks(inputFluidStackMap, fluidInputsIterator);
 
                     ListIterator<ItemStack> itemOutputsIterator =
                             Arrays.asList(gtRecipe.mOutputs).listIterator();
@@ -74,37 +72,44 @@ public class GregTechExporter {
                         if (itemStack == null) {
                             continue;
                         }
-                        gregTechRecipeBuilder.addItemOutput(
-                                new ItemBuilder()
-                                        .setUnlocalizedName(ItemUtils.getUnlocalizedNameSafe(itemStack))
-                                        .setLocalizedName(ItemUtils.getLocalizedNameSafe(itemStack))
-                                        .setIcon(StackRenderer.renderIcon(itemStack))
-                                        .save(conn),
-                                slot,
-                                itemStack.stackSize,
-                                gtRecipe.getOutputChance(slot));
+                        Item item = itemDAO.create(
+                                ItemUtils.getUnlocalizedNameSafe(itemStack),
+                                ItemUtils.getLocalizedNameSafe(itemStack),
+                                StackRenderer.renderIcon(itemStack));
+                        outputItemStackMap.accumulate(slot, item, itemStack.stackSize);
                     }
 
                     ListIterator<FluidStack> fluidOutputsIterator =
                             Arrays.asList(gtRecipe.mFluidOutputs).listIterator();
-                    while (fluidOutputsIterator.hasNext()) {
-                        int slot = fluidOutputsIterator.nextIndex();
-                        FluidStack fluidStack = fluidOutputsIterator.next();
-                        if (fluidStack == null) {
-                            continue;
-                        }
-                        gregTechRecipeBuilder.addFluidOutput(
-                                new FluidBuilder()
-                                        .setUnlocalizedName(fluidStack.getUnlocalizedName())
-                                        .setLocalizedName(fluidStack.getLocalizedName())
-                                        .save(conn),
-                                slot,
-                                fluidStack.amount);
-                    }
-                    gregTechRecipeBuilder.setConfig(circuit);
-                    gregTechRecipeBuilder.save(conn);
+                    setFluidStacks(outputFluidStackMap, fluidOutputsIterator);
+                    gregTechRecipeDAO.create(
+                            gtRecipeMap.mUnlocalizedName,
+                            gtRecipe.mEUt,
+                            gtRecipe.mDuration,
+                            gtRecipeMap.mAmperage,
+                            config,
+                            inputItemStackMap,
+                            inputFluidStackMap,
+                            outputItemStackMap,
+                            outputFluidStackMap);
                 }
             }
+        }
+    }
+
+    private void setFluidStacks(FluidStackMap outputFluidStackMap, ListIterator<FluidStack> fluidOutputsIterator)
+            throws SQLException {
+        while (fluidOutputsIterator.hasNext()) {
+            int slot = fluidOutputsIterator.nextIndex();
+            FluidStack fluidStack = fluidOutputsIterator.next();
+            if (fluidStack == null) {
+                continue;
+            }
+            Fluid fluid = fluidDAO.create(
+                    fluidStack.getUnlocalizedName(),
+                    fluidStack.getLocalizedName(),
+                    StackRenderer.renderIcon(fluidStack));
+            outputFluidStackMap.accumulate(slot, fluid, fluidStack.amount);
         }
     }
 }

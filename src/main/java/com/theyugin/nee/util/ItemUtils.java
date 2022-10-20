@@ -15,11 +15,15 @@ public class ItemUtils {
 
     public static String getLocalizedNameSafe(ItemStack itemStack) {
         return ItemUtils.isWildcard(itemStack)
-                ? itemStack.getItem().getUnlocalizedName() + " wildcard"
+                ? new ItemStack(itemStack.getItem(), 1, 0).getDisplayName() + " (Wildcard)"
                 : itemStack.getDisplayName();
     }
 
-    public static String getOreDictValue(List<ItemStack> itemStacks) {
+    public static Set<ItemStack> getOreItemStacks(String oreName) {
+        return new HashSet<>(OreDictionary.getOres(oreName));
+    }
+
+    public static String getOreDictValue(Set<ItemStack> itemStacks) {
         List<Set<String>> oreSets = new ArrayList<>();
         for (ItemStack itemStack : itemStacks) {
             Set<String> oreSet = new HashSet<>();

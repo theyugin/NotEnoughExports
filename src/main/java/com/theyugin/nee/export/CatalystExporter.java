@@ -2,30 +2,41 @@ package com.theyugin.nee.export;
 
 import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.RecipeCatalysts;
-import com.theyugin.nee.sql.CatalystTypeBuilder;
-import com.theyugin.nee.sql.ItemBuilder;
+import com.theyugin.nee.data.Item;
+import com.theyugin.nee.sql.CatalystTypeDAO;
+import com.theyugin.nee.sql.ItemDAO;
 import com.theyugin.nee.util.ItemUtils;
 import com.theyugin.nee.util.StackRenderer;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.minecraft.item.ItemStack;
 
 public class CatalystExporter {
-    public static void run(Connection conn) throws SQLException {
+    private final ItemDAO itemDAO;
+    private final CatalystTypeDAO catalystTypeDAO;
+
+    public CatalystExporter(Connection conn) {
+        itemDAO = new ItemDAO(conn);
+        catalystTypeDAO = new CatalystTypeDAO(conn);
+    }
+
+    public void run() throws SQLException {
         Map<String, List<PositionedStack>> catalystMap = RecipeCatalysts.getPositionedRecipeCatalystMap();
         for (Map.Entry<String, List<PositionedStack>> stringListEntry : catalystMap.entrySet()) {
-            CatalystTypeBuilder catalystTypeBuilder = new CatalystTypeBuilder().setName(stringListEntry.getKey());
+            Set<Item> catalystItems = new HashSet<>();
             for (PositionedStack positionedStack : stringListEntry.getValue()) {
                 for (ItemStack itemStack : positionedStack.items) {
-                    catalystTypeBuilder.addItem(new ItemBuilder()
-                            .setUnlocalizedName(ItemUtils.getUnlocalizedNameSafe(itemStack))
-                            .setLocalizedName(ItemUtils.getLocalizedNameSafe(itemStack))
-                            .setIcon(StackRenderer.renderIcon(itemStack))
-                            .save(conn));
+                    Item item = itemDAO.create(
+                            ItemUtils.getUnlocalizedNameSafe(itemStack),
+                            ItemUtils.getLocalizedNameSafe(itemStack),
+                            StackRenderer.renderIcon(itemStack));
+                    catalystItems.add(item);
                 }
-                catalystTypeBuilder.save(conn);
+                catalystTypeDAO.create(stringListEntry.getKey(), catalystItems);
             }
         }
     }

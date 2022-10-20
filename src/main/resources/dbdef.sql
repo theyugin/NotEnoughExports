@@ -7,7 +7,8 @@ create table item
 create table fluid
 (
     unlocalizedName text primary key,
-    localizedName   text
+    localizedName   text,
+    icon            blob
 ) without rowid;
 create table ore
 (

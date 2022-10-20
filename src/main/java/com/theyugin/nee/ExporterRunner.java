@@ -54,11 +54,11 @@ public class ExporterRunner implements Runnable {
         ds.setUrl("jdbc:sqlite:nee.sqlite");
 
         try (Connection conn = ds.getConnection()) {
-            StackRenderer.initialize();
+            //            StackRenderer.initialize();
             populateDatabase(conn);
-            CatalystExporter.run(conn);
-            CraftingTableExporter.run(conn);
-            if (GREGTECH.isLoaded()) GregTechExporter.run(conn);
+            new CatalystExporter(conn).run();
+            new CraftingTableExporter(conn).run();
+            if (GREGTECH.isLoaded()) new GregTechExporter(conn).run();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {

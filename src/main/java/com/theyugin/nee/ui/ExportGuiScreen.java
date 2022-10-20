@@ -28,7 +28,7 @@ public class ExportGuiScreen extends GuiScreen {
     @Override
     protected void actionPerformed(GuiButton button) {
         if (button.equals(exportButton)) {
-            new ExporterRunner().run();
+            new Thread(new ExporterRunner()).start();
         } else super.actionPerformed(button);
     }
 

@@ -11,6 +11,7 @@ import javax.imageio.ImageIO;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.FluidStack;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
@@ -93,6 +94,10 @@ public class StackRenderer {
         }
 
         return os.toByteArray();
+    }
+
+    public static byte[] renderIcon(FluidStack fluidStack) {
+        return new byte[] {};
     }
 
     private static void clearBuffer() {

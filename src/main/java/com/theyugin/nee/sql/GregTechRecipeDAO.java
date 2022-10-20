@@ -7,87 +7,22 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 
-public class GregTechRecipeBuilder implements IMachineRecipeBuilder<GregTechRecipe> {
-    private String machineType;
-
-    private ItemStackMap inputItemStackMap = new ItemStackMap();
-    private OreStackMap inputOreStackMap = new OreStackMap();
-    private FluidStackMap inputFluidStackMap = new FluidStackMap();
-
-    private ItemStackMap outputItemStackMap = new ItemStackMap();
-    private FluidStackMap outputFluidStackMap = new FluidStackMap();
-
-    private int duration;
-    private int voltage;
-    private int amperage;
-    private int config;
-
-    public GregTechRecipeBuilder setMachineType(String type) {
-        machineType = type;
-        return this;
+public class GregTechRecipeDAO extends DAO {
+    public GregTechRecipeDAO(Connection conn) {
+        super(conn);
     }
 
-    public GregTechRecipeBuilder addItemInput(Item item, int slot, int amount) {
-        inputItemStackMap.accumulate(slot, item, amount);
-        return this;
-    }
-
-    public GregTechRecipeBuilder addItemInput(Item item, int slot) {
-        return this;
-    }
-
-    public GregTechRecipeBuilder addOreInput(Ore ore, int slot, int amount) {
-        inputOreStackMap.accumulate(slot, ore, amount);
-        return this;
-    }
-
-    public GregTechRecipeBuilder addOreInput(Ore item, int slot) {
-        return this;
-    }
-
-    public GregTechRecipeBuilder addFluidInput(Fluid fluid, int slot, int amount) {
-        inputFluidStackMap.accumulate(slot, fluid, amount);
-        return this;
-    }
-
-    public GregTechRecipeBuilder addItemOutput(Item item, int slot, int amount) {
-        outputItemStackMap.accumulate(slot, item, amount);
-        return this;
-    }
-
-    @Override
-    public ICraftingTableRecipeBuilder<GregTechRecipe> addItemOutput(Item item, int slot, int amount, int chance) {
-        outputItemStackMap.accumulate(slot, item, amount, chance);
-        return null;
-    }
-
-    public GregTechRecipeBuilder addFluidOutput(Fluid fluid, int slot, int amount) {
-        outputFluidStackMap.accumulate(slot, fluid, amount);
-        return this;
-    }
-
-    public GregTechRecipeBuilder setDuration(int duration) {
-        this.duration = duration;
-        return this;
-    }
-
-    public GregTechRecipeBuilder setAmperage(int amperage) {
-        this.amperage = amperage;
-        return this;
-    }
-
-    public GregTechRecipeBuilder setVoltage(int voltage) {
-        this.voltage = voltage;
-        return this;
-    }
-
-    public GregTechRecipeBuilder setConfig(int config) {
-        this.config = config;
-        return this;
-    }
-
-    @Override
-    public GregTechRecipe save(Connection conn) throws SQLException {
+    public GregTechRecipe create(
+            String machineType,
+            int voltage,
+            int duration,
+            int amperage,
+            int config,
+            ItemStackMap inputItemStackMap,
+            FluidStackMap inputFluidStackMap,
+            ItemStackMap outputItemStackMap,
+            FluidStackMap outputFluidStackMap)
+            throws SQLException {
         PreparedStatement stmt = conn.prepareStatement("insert or ignore into catalystType (name) values (?)");
         stmt.setString(1, machineType);
         stmt.executeUpdate();
@@ -181,7 +116,6 @@ public class GregTechRecipeBuilder implements IMachineRecipeBuilder<GregTechReci
                 machineType,
                 inputItemStackMap,
                 inputFluidStackMap,
-                inputOreStackMap,
                 outputItemStackMap,
                 outputFluidStackMap,
                 duration,

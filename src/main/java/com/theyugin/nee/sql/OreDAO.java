@@ -5,29 +5,16 @@ import com.theyugin.nee.data.Ore;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
-public class OreBuilder implements IDataBuilder<Ore> {
-    private String name;
-    private final List<Item> items = new ArrayList<>();
-
-    public OreBuilder setName(String name) {
-        this.name = name;
-        return this;
+public class OreDAO extends DAO {
+    public OreDAO(Connection conn) {
+        super(conn);
     }
 
-    public OreBuilder addItem(Item item) {
-        this.items.add(item);
-        return this;
-    }
-
-    public Ore save(Connection conn) throws SQLException {
-        if (this.name == null) {
-            throw new SQLException("unset parameters");
-        }
+    public Ore create(String name, Set<Item> items) throws SQLException {
         PreparedStatement stmt = conn.prepareStatement("insert or ignore into ore (name) values (?)");
-        stmt.setString(1, this.name);
+        stmt.setString(1, name);
         stmt.executeUpdate();
 
         stmt = conn.prepareStatement("insert or ignore into oreItem (item, name) values (?, ?)");

@@ -8,21 +8,16 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class CatalystTypeBuilder implements IDataBuilder<CatalystType> {
-    private String name;
-    private Set<Item> items = new HashSet<>();
-
-    public CatalystTypeBuilder setName(String name) {
-        this.name = name;
-        return this;
+public class CatalystTypeDAO extends DAO {
+    public CatalystTypeDAO(Connection conn) {
+        super(conn);
     }
 
-    public CatalystTypeBuilder addItem(Item item) {
-        this.items.add(item);
-        return this;
+    public CatalystType create(String name) throws SQLException {
+        return create(name, new HashSet<>());
     }
 
-    public CatalystType save(Connection conn) throws SQLException {
+    public CatalystType create(String name, Set<Item> items) throws SQLException {
         PreparedStatement stmt = conn.prepareStatement("insert or ignore into catalystType (name) values (?)");
         stmt.setString(1, name);
         stmt.executeUpdate();

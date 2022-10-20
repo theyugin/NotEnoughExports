@@ -3,7 +3,6 @@ package com.theyugin.nee.data;
 public class GregTechRecipe {
     public final String recipeType;
     public final ItemStackMap inputItemStackMap;
-    public final OreStackMap inputOreStackMap;
     public final FluidStackMap inputFluidStackMap;
     public final ItemStackMap outputItemStackMap;
     public final FluidStackMap outputFluidStackMap;
@@ -16,7 +15,6 @@ public class GregTechRecipe {
             String recipeType,
             ItemStackMap inputItemStackMap,
             FluidStackMap inputFluidStackMap,
-            OreStackMap inputOreStackMap,
             ItemStackMap outputItemStackMap,
             FluidStackMap outputFluidStackMap,
             int duration,
@@ -25,7 +23,6 @@ public class GregTechRecipe {
             int config) {
         this.recipeType = recipeType;
         this.inputItemStackMap = inputItemStackMap;
-        this.inputOreStackMap = inputOreStackMap;
         this.inputFluidStackMap = inputFluidStackMap;
         this.outputItemStackMap = outputItemStackMap;
         this.outputFluidStackMap = outputFluidStackMap;
