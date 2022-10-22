@@ -18,16 +18,24 @@ import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
 
-public class CraftingTableExporter {
-    private static boolean exporting = false;
-    private static String status = "";
-
-    public static boolean isExporting() {
-        return exporting;
+public class CraftingTableExporter implements IExporter {
+    private boolean running = true;
+    private int progress = 0;
+    private int total = 0;
+    public int progress() {
+        return progress;
     }
 
-    public static String getStatus() {
-        return status;
+    public int total() {
+        return total;
+    }
+
+    public boolean running() {
+        return running;
+    }
+
+    public String name() {
+        return "crafting table recipes";
     }
 
     private final ItemDAO itemDAO;
@@ -148,14 +156,12 @@ public class CraftingTableExporter {
     }
 
     public void run() throws SQLException {
-        exporting = true;
         Set<String> unhandledRecipes = new HashSet<>();
         List<Object> recipeList = CraftingManager.getInstance().getRecipeList();
-        int recipeCount = recipeList.size();
-        int counter = 0;
+        total = recipeList.size();
+        progress = 0;
         for (Object recipe : recipeList) {
-            counter++;
-            status = String.format("Exporting recipe %d/%d", counter, recipeCount);
+            progress++;
             if (recipe instanceof IRecipe
                     && ((IRecipe) recipe).getRecipeOutput() != null
                     && ((IRecipe) recipe).getRecipeOutput().getItem() != null) {
@@ -183,6 +189,6 @@ public class CraftingTableExporter {
         if (unhandledRecipes.size() > 0) {
             NotEnoughExports.warn("Unhandled recipe types: " + unhandledRecipes);
         }
-        exporting = false;
+        running = false;
     }
 }

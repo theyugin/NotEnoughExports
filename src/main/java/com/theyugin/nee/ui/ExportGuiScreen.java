@@ -1,7 +1,7 @@
 package com.theyugin.nee.ui;
 
 import com.theyugin.nee.ExporterRunner;
-import com.theyugin.nee.export.CraftingTableExporter;
+import com.theyugin.nee.export.IExporter;
 import com.theyugin.nee.render.StackRenderer;
 import com.theyugin.nee.util.NEEUtils;
 import net.minecraft.client.gui.GuiButton;
@@ -25,31 +25,46 @@ public class ExportGuiScreen extends GuiScreen {
     @SuppressWarnings("unchecked")
     @Override
     public void initGui() {
-        exportButton = new GuiButton(1, 10, 40, exportLabel());
-        exportIconsButton = new GuiButton(2, 10, 60, exportIconsLabel());
+        exportButton = new GuiButton(1, 10, height - 50, exportLabel());
+        exportIconsButton = new GuiButton(2, 10, 40, exportIconsLabel());
         this.buttonList.add(exportButton);
         this.buttonList.add(exportIconsButton);
         super.initGui();
     }
 
-    public static boolean notExporting() {
-        return exporterThread == null || !exporterThread.isAlive();
+    public static boolean exporting() {
+        return exporterThread != null && exporterThread.isAlive();
     }
 
     @Override
     public void drawScreen(int mx, int my, float partTicks) {
         drawDefaultBackground();
         int middle = (width / 2) - (exportButton.width / 2);
+
         exportButton.xPosition = middle;
         exportButton.yPosition = height - 50;
-        exportIconsButton.xPosition = middle;
-        exportIconsButton.enabled = notExporting();
-        exportButton.enabled = notExporting();
+        exportButton.enabled = !exporting();
 
-        if (!notExporting()) {
-            exportButton.displayString = CraftingTableExporter.getStatus();
-        } else {
-            exportButton.displayString = exportLabel();
+        exportIconsButton.xPosition = middle;
+        exportIconsButton.enabled = !exporting();
+
+        if (exporting() && ExporterRunner.isRunning()) {
+            int labelPosition = 60;
+            for (IExporter exporter : ExporterRunner.loadedExporters) {
+                String status;
+                EnumChatFormatting color;
+
+                if (exporter.running()) {
+                    status = String.format("Exporting %s: %d/%d", exporter.name(), exporter.progress(), exporter.total());
+                    color = EnumChatFormatting.BLUE;
+                } else {
+                    status = String.format("Exporting %s: done %d", exporter.name(), exporter.total());
+                    color = EnumChatFormatting.GREEN;
+                }
+
+                mc.fontRenderer.drawString(color + status, middle, labelPosition, 0xFFFFFF, true);
+                labelPosition += 10;
+            }
         }
 
         super.drawScreen(mx, my, partTicks);
@@ -58,21 +73,17 @@ public class ExportGuiScreen extends GuiScreen {
     @Override
     protected void actionPerformed(GuiButton button) {
         if (button.equals(exportButton)) {
-            if (notExporting()) {
-                NEEUtils.sendPlayerMessage(EnumChatFormatting.GREEN + "Started export");
-                ExporterRunner.startRunning();
-                exporterThread = new Thread(new ExporterRunner());
-                exporterThread.start();
-                if (EXPORT_ICONS) {
-                    NEEUtils.sendPlayerMessage(EnumChatFormatting.GREEN + "Exporting icons...");
-                }
-            } else {
-                NEEUtils.sendPlayerMessage(EnumChatFormatting.RED + "Export already running!");
+            NEEUtils.sendPlayerMessage(EnumChatFormatting.GREEN + "Started export");
+            exporterThread = new Thread(new ExporterRunner());
+            exporterThread.start();
+            if (EXPORT_ICONS) {
+                NEEUtils.sendPlayerMessage(EnumChatFormatting.GREEN + "Exporting icons...");
             }
         } else if (button.equals(exportIconsButton)) {
             EXPORT_ICONS = !EXPORT_ICONS;
             StackRenderer.toggleEnabled();
             button.displayString = exportIconsLabel();
+        } else if (exporting()) {
         } else super.actionPerformed(button);
     }
 

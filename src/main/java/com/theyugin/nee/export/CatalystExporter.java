@@ -14,7 +14,27 @@ import java.util.Map;
 import java.util.Set;
 import net.minecraft.item.ItemStack;
 
-public class CatalystExporter {
+public class CatalystExporter implements IExporter {
+    private int progress = 0;
+    private int total = 0;
+    private boolean running = true;
+    public int progress() {
+        return progress;
+    }
+
+    public int total() {
+        return total;
+    }
+
+    public String name() {
+        return "catalysts";
+    }
+
+    @Override
+    public boolean running() {
+        return running;
+    }
+
     private final ItemDAO itemDAO;
     private final CatalystTypeDAO catalystTypeDAO;
 
@@ -25,7 +45,9 @@ public class CatalystExporter {
 
     public void run() throws SQLException {
         Map<String, List<PositionedStack>> catalystMap = RecipeCatalysts.getPositionedRecipeCatalystMap();
+        total = catalystMap.size();
         for (Map.Entry<String, List<PositionedStack>> stringListEntry : catalystMap.entrySet()) {
+            progress++;
             Set<Item> catalystItems = new HashSet<>();
             for (PositionedStack positionedStack : stringListEntry.getValue()) {
                 for (ItemStack itemStack : positionedStack.items) {
@@ -35,5 +57,6 @@ public class CatalystExporter {
                 catalystTypeDAO.create(stringListEntry.getKey(), catalystItems);
             }
         }
+        running = false;
     }
 }

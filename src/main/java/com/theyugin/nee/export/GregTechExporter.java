@@ -16,7 +16,26 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
 
-public class GregTechExporter {
+public class GregTechExporter implements IExporter {
+    private boolean running = true;
+    private  int progress = 0;
+    private  int total = 0;
+    public  int progress() {
+        return progress;
+    }
+    public  int total() {
+        return total;
+    }
+
+    @Override
+    public String name() {
+        return "GregTech recipes";
+    }
+
+    public boolean running() {
+        return running;
+    }
+
     private final ItemDAO itemDAO;
     private final GregTechRecipeDAO gregTechRecipeDAO;
     private final FluidDAO fluidDAO;
@@ -27,9 +46,20 @@ public class GregTechExporter {
         fluidDAO = new FluidDAO(conn);
     }
 
+    private int countTotalReciopes(Collection<GT_Recipe.GT_Recipe_Map> gtRecipeMaps) {
+        int acc = 0;
+        for (GT_Recipe.GT_Recipe_Map gtRecipeMap : gtRecipeMaps) {
+            acc += gtRecipeMap.mRecipeList.size();
+        }
+        return acc;
+    }
+
     public void run() throws SQLException {
-        for (GT_Recipe.GT_Recipe_Map gtRecipeMap : GT_Recipe.GT_Recipe_Map.sMappings) {
+        Collection<GT_Recipe.GT_Recipe_Map> gtRecipeMaps = GT_Recipe.GT_Recipe_Map.sMappings;
+        total = countTotalReciopes(gtRecipeMaps);
+        for (GT_Recipe.GT_Recipe_Map gtRecipeMap : gtRecipeMaps) {
             for (GT_Recipe gtRecipe : gtRecipeMap.mRecipeList) {
+                progress++;
                 if (!gtRecipe.mFakeRecipe && gtRecipe.mEnabled) {
 
                     int config = 0;
@@ -88,6 +118,7 @@ public class GregTechExporter {
                 }
             }
         }
+        running = false;
     }
 
     private void setFluidStacks(FluidStackMap outputFluidStackMap, ListIterator<FluidStack> fluidOutputsIterator)

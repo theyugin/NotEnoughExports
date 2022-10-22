@@ -5,19 +5,25 @@ import static com.theyugin.nee.LoadedMods.GREGTECH;
 import com.theyugin.nee.export.CatalystExporter;
 import com.theyugin.nee.export.CraftingTableExporter;
 import com.theyugin.nee.export.GregTechExporter;
+import com.theyugin.nee.export.IExporter;
 import com.theyugin.nee.util.NEEUtils;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import gtPlusPlus.core.client.renderer.CustomOreBlockRenderer;
 import net.minecraft.util.EnumChatFormatting;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
 
 public class ExporterRunner implements Runnable {
+    public static List<IExporter> loadedExporters = new ArrayList<>();
     private static boolean isRunning = false;
 
     public static synchronized void startRunning() {
@@ -54,6 +60,12 @@ public class ExporterRunner implements Runnable {
         stmt.executeBatch();
     }
 
+    private void loadExporters(Connection conn) {
+        loadedExporters.add(new CatalystExporter(conn));
+        loadedExporters.add(new CraftingTableExporter(conn));
+        if (GREGTECH.isLoaded()) loadedExporters.add(new GregTechExporter(conn));
+    }
+
     public void run() {
         long start = System.nanoTime();
         SQLiteConfig sqLiteConfig = new SQLiteConfig();
@@ -72,13 +84,16 @@ public class ExporterRunner implements Runnable {
 
         try (Connection conn = ds.getConnection()) {
             populateDatabase(conn);
-            new CatalystExporter(conn).run();
-            new CraftingTableExporter(conn).run();
-            if (GREGTECH.isLoaded()) new GregTechExporter(conn).run();
+            loadExporters(conn);
+            startRunning();
+            for (IExporter exporter : loadedExporters) {
+                exporter.run();
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
         stopRunning();
+        loadedExporters = new ArrayList<>();
         long total = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
         NEEUtils.sendPlayerMessage(
                 EnumChatFormatting.GREEN + String.format("Successfully exported in %d seconds!", total));
