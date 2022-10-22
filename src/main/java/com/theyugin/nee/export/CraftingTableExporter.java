@@ -5,8 +5,7 @@ import static com.theyugin.nee.LoadedMods.*;
 import com.theyugin.nee.NotEnoughExports;
 import com.theyugin.nee.data.*;
 import com.theyugin.nee.sql.*;
-import com.theyugin.nee.util.ItemUtils;
-import com.theyugin.nee.util.StackRenderer;
+import com.theyugin.nee.util.StackUtils;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
@@ -20,6 +19,17 @@ import net.minecraftforge.oredict.ShapedOreRecipe;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
 
 public class CraftingTableExporter {
+    private static boolean exporting = false;
+    private static String status = "";
+
+    public static boolean isExporting() {
+        return exporting;
+    }
+
+    public static String getStatus() {
+        return status;
+    }
+
     private final ItemDAO itemDAO;
     private final OreDAO oreDAO;
     private final ShapedRecipeDAO shapedRecipeDAO;
@@ -33,14 +43,11 @@ public class CraftingTableExporter {
     }
 
     private void assignOreDict(List<ItemStack> itemStacks, OreStackMap oreStackMap, int slot) throws SQLException {
-        String oreName = ItemUtils.getOreDictValue(new HashSet<>(itemStacks));
+        String oreName = StackUtils.getOreDictValue(new HashSet<>(itemStacks));
         if (oreName != null) {
             Set<Item> items = new HashSet<>();
             for (ItemStack itemStack : itemStacks) {
-                Item item = itemDAO.create(
-                        ItemUtils.getUnlocalizedNameSafe(itemStack),
-                        ItemUtils.getLocalizedNameSafe(itemStack),
-                        StackRenderer.renderIcon(itemStack));
+                Item item = StackUtils.createFromStack(itemDAO, itemStack);
                 items.add(item);
             }
             Ore ore = oreDAO.create(oreName, items);
@@ -52,27 +59,21 @@ public class CraftingTableExporter {
     private void processInput(ItemStackMap itemStackMap, OreStackMap oreStackMap, int slot, Object oInput)
             throws SQLException {
         if (oInput instanceof ItemStack) {
-            Item item = itemDAO.create(
-                    ItemUtils.getUnlocalizedNameSafe((ItemStack) oInput),
-                    ItemUtils.getLocalizedNameSafe((ItemStack) oInput),
-                    StackRenderer.renderIcon((ItemStack) oInput));
+            Item item = StackUtils.createFromStack(itemDAO, (ItemStack) oInput);
             itemStackMap.accumulate(slot, item);
         } else if (oInput instanceof String) {
             Set<Item> oreItems = new HashSet<>();
-            for (ItemStack itemStack : ItemUtils.getOreItemStacks((String) oInput)) {
-                Item item = itemDAO.create(
-                        ItemUtils.getUnlocalizedNameSafe(itemStack),
-                        ItemUtils.getLocalizedNameSafe(itemStack),
-                        StackRenderer.renderIcon(itemStack));
+            for (ItemStack itemStack : StackUtils.getOreItemStacks((String) oInput)) {
+                Item item = StackUtils.createFromStack(itemDAO, itemStack);
                 oreItems.add(item);
             }
             Ore ore = oreDAO.create((String) oInput, oreItems);
             oreStackMap.accumulate(slot, ore);
         } else if (oInput instanceof ArrayList<?>) {
-            if (((ArrayList<?>) oInput).stream().allMatch(ItemUtils::isItemStack)) {
+            if (((ArrayList<?>) oInput).stream().allMatch(StackUtils::isItemStack)) {
                 assignOreDict((List<ItemStack>) oInput, oreStackMap, slot);
 
-            } else if (((ArrayList<?>) oInput).stream().allMatch(ItemUtils::isIC2InputItemStack)) {
+            } else if (((ArrayList<?>) oInput).stream().allMatch(StackUtils::isIC2InputItemStack)) {
                 List<ItemStack> itemStacks = ((ArrayList<?>) oInput)
                         .stream()
                                 .map(v -> ((ic2.api.recipe.RecipeInputItemStack) v).input)
@@ -147,8 +148,14 @@ public class CraftingTableExporter {
     }
 
     public void run() throws SQLException {
+        exporting = true;
         Set<String> unhandledRecipes = new HashSet<>();
-        for (Object recipe : CraftingManager.getInstance().getRecipeList()) {
+        List<Object> recipeList = CraftingManager.getInstance().getRecipeList();
+        int recipeCount = recipeList.size();
+        int counter = 0;
+        for (Object recipe : recipeList) {
+            counter++;
+            status = String.format("Exporting recipe %d/%d", counter, recipeCount);
             if (recipe instanceof IRecipe
                     && ((IRecipe) recipe).getRecipeOutput() != null
                     && ((IRecipe) recipe).getRecipeOutput().getItem() != null) {
@@ -161,12 +168,7 @@ public class CraftingTableExporter {
                     ItemStackMap itemStackMap = new ItemStackMap();
                     OreStackMap oreStackMap = new OreStackMap();
                     ItemStack outputItemStack = ((IRecipe) recipe).getRecipeOutput();
-                    Item output = itemDAO.create(
-                            ItemUtils.getUnlocalizedNameSafe(outputItemStack),
-                            ItemUtils.getLocalizedNameSafe(outputItemStack),
-                            StackRenderer.renderIcon(outputItemStack));
-
-                    Object[] inputs;
+                    Item output = StackUtils.createFromStack(itemDAO, outputItemStack);
 
                     if (shapedInputs != null) {
                         processInputs(shapedInputs, itemStackMap, oreStackMap);
@@ -181,5 +183,6 @@ public class CraftingTableExporter {
         if (unhandledRecipes.size() > 0) {
             NotEnoughExports.warn("Unhandled recipe types: " + unhandledRecipes);
         }
+        exporting = false;
     }
 }

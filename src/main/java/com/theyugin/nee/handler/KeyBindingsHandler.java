@@ -1,4 +1,4 @@
-package com.theyugin.nee.input;
+package com.theyugin.nee.handler;
 
 import static com.theyugin.nee.input.KeyBindings.guiKey;
 

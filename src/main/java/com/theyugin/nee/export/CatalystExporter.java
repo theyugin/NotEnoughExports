@@ -5,8 +5,7 @@ import codechicken.nei.recipe.RecipeCatalysts;
 import com.theyugin.nee.data.Item;
 import com.theyugin.nee.sql.CatalystTypeDAO;
 import com.theyugin.nee.sql.ItemDAO;
-import com.theyugin.nee.util.ItemUtils;
-import com.theyugin.nee.util.StackRenderer;
+import com.theyugin.nee.util.StackUtils;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashSet;
@@ -30,10 +29,7 @@ public class CatalystExporter {
             Set<Item> catalystItems = new HashSet<>();
             for (PositionedStack positionedStack : stringListEntry.getValue()) {
                 for (ItemStack itemStack : positionedStack.items) {
-                    Item item = itemDAO.create(
-                            ItemUtils.getUnlocalizedNameSafe(itemStack),
-                            ItemUtils.getLocalizedNameSafe(itemStack),
-                            StackRenderer.renderIcon(itemStack));
+                    Item item = StackUtils.createFromStack(itemDAO, itemStack);
                     catalystItems.add(item);
                 }
                 catalystTypeDAO.create(stringListEntry.getKey(), catalystItems);

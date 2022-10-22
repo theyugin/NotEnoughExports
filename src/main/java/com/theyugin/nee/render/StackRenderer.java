@@ -1,4 +1,4 @@
-package com.theyugin.nee.util;
+package com.theyugin.nee.render;
 
 import codechicken.nei.guihook.GuiContainerManager;
 import java.awt.image.BufferedImage;
@@ -13,13 +13,20 @@ import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.*;
 
 public class StackRenderer {
+    private static boolean enabled = false;
+
+    public static boolean isEnabled() {
+        return enabled;
+    }
+
+    public static void toggleEnabled() {
+        enabled = !enabled;
+    }
+
     private static final int imageDim = 64;
-    private static boolean initialized = false;
     private static Framebuffer framebuffer = null;
 
     public static void initialize() {
@@ -59,18 +66,24 @@ public class StackRenderer {
         GL11.glDisable(GL11.GL_LIGHT0);
         GL11.glEnable(GL11.GL_LIGHT1);
         GL11.glShadeModel(GL11.GL_FLAT);
+
         framebuffer.bindFramebuffer(true);
         OpenGlHelper.func_153171_g(GL30.GL_READ_FRAMEBUFFER, framebuffer.framebufferObject);
-        initialized = true;
     }
 
     public static byte[] renderIcon(ItemStack itemStack) {
-        if (!initialized) return new byte[] {};
         clearBuffer();
 
         int metadata = itemStack.getItemDamage() == 32767 ? 0 : itemStack.getItemDamage();
         GuiContainerManager.drawItem(0, 0, new ItemStack(itemStack.getItem(), 1, metadata));
+        return readPixels();
+    }
 
+    public static byte[] renderIcon(FluidStack fluidStack) {
+        return new byte[] {};
+    }
+
+    private static byte[] readPixels() {
         ByteBuffer imageByteBuffer = BufferUtils.createByteBuffer(4 * imageDim * imageDim);
         GL11.glReadPixels(0, 0, imageDim, imageDim, GL12.GL_BGRA, GL11.GL_UNSIGNED_BYTE, imageByteBuffer);
 
@@ -92,12 +105,7 @@ public class StackRenderer {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
         return os.toByteArray();
-    }
-
-    public static byte[] renderIcon(FluidStack fluidStack) {
-        return new byte[] {};
     }
 
     private static void clearBuffer() {
@@ -107,7 +115,6 @@ public class StackRenderer {
     }
 
     public static void uninitialize() {
-        if (!initialized) return;
         framebuffer.unbindFramebuffer();
         GL11.glPopAttrib();
         GL11.glPopMatrix();
@@ -117,6 +124,5 @@ public class StackRenderer {
         GL11.glPopMatrix();
         framebuffer.deleteFramebuffer();
         framebuffer = null;
-        initialized = false;
     }
 }

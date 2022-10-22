@@ -5,21 +5,37 @@ import static com.theyugin.nee.LoadedMods.GREGTECH;
 import com.theyugin.nee.export.CatalystExporter;
 import com.theyugin.nee.export.CraftingTableExporter;
 import com.theyugin.nee.export.GregTechExporter;
-import com.theyugin.nee.util.StackRenderer;
+import com.theyugin.nee.util.NEEUtils;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+import net.minecraft.util.EnumChatFormatting;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
 
 public class ExporterRunner implements Runnable {
+    private static boolean isRunning = false;
+
+    public static synchronized void startRunning() {
+        isRunning = true;
+    }
+
+    public static synchronized void stopRunning() {
+        isRunning = false;
+    }
+
+    public static synchronized boolean isRunning() {
+        return isRunning;
+    }
+
     private void populateDatabase(Connection conn) throws SQLException {
         StringBuilder statementBuffer = new StringBuilder();
-
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("dbdef.sql")) {
+        try (InputStream is =
+                Thread.currentThread().getContextClassLoader().getResourceAsStream("assets/nee/sql/dbdef.sql")) {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
             String line;
             while ((line = bufferedReader.readLine()) != null) {
@@ -39,6 +55,7 @@ public class ExporterRunner implements Runnable {
     }
 
     public void run() {
+        long start = System.nanoTime();
         SQLiteConfig sqLiteConfig = new SQLiteConfig();
         sqLiteConfig.enforceForeignKeys(true);
         sqLiteConfig.setJournalMode(SQLiteConfig.JournalMode.WAL);
@@ -54,15 +71,16 @@ public class ExporterRunner implements Runnable {
         ds.setUrl("jdbc:sqlite:nee.sqlite");
 
         try (Connection conn = ds.getConnection()) {
-            //            StackRenderer.initialize();
             populateDatabase(conn);
             new CatalystExporter(conn).run();
             new CraftingTableExporter(conn).run();
             if (GREGTECH.isLoaded()) new GregTechExporter(conn).run();
         } catch (SQLException e) {
             throw new RuntimeException(e);
-        } finally {
-            StackRenderer.uninitialize();
         }
+        stopRunning();
+        long total = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
+        NEEUtils.sendPlayerMessage(
+                EnumChatFormatting.GREEN + String.format("Successfully exported in %d seconds!", total));
     }
 }

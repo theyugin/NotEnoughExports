@@ -7,8 +7,7 @@ import com.theyugin.nee.data.ItemStackMap;
 import com.theyugin.nee.sql.FluidDAO;
 import com.theyugin.nee.sql.GregTechRecipeDAO;
 import com.theyugin.nee.sql.ItemDAO;
-import com.theyugin.nee.util.ItemUtils;
-import com.theyugin.nee.util.StackRenderer;
+import com.theyugin.nee.util.StackUtils;
 import gregtech.api.util.GT_Recipe;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -53,10 +52,7 @@ public class GregTechExporter {
                             config = itemStack.getItemDamage();
                             continue;
                         }
-                        Item item = itemDAO.create(
-                                ItemUtils.getUnlocalizedNameSafe(itemStack),
-                                ItemUtils.getLocalizedNameSafe(itemStack),
-                                StackRenderer.renderIcon(itemStack));
+                        Item item = StackUtils.createFromStack(itemDAO, itemStack);
                         inputItemStackMap.accumulate(slot, item, itemStack.stackSize);
                     }
 
@@ -72,10 +68,7 @@ public class GregTechExporter {
                         if (itemStack == null) {
                             continue;
                         }
-                        Item item = itemDAO.create(
-                                ItemUtils.getUnlocalizedNameSafe(itemStack),
-                                ItemUtils.getLocalizedNameSafe(itemStack),
-                                StackRenderer.renderIcon(itemStack));
+                        Item item = StackUtils.createFromStack(itemDAO, itemStack);
                         outputItemStackMap.accumulate(slot, item, itemStack.stackSize);
                     }
 
@@ -105,10 +98,7 @@ public class GregTechExporter {
             if (fluidStack == null) {
                 continue;
             }
-            Fluid fluid = fluidDAO.create(
-                    fluidStack.getUnlocalizedName(),
-                    fluidStack.getLocalizedName(),
-                    StackRenderer.renderIcon(fluidStack));
+            Fluid fluid = StackUtils.createFromStack(fluidDAO, fluidStack);
             outputFluidStackMap.accumulate(slot, fluid, fluidStack.amount);
         }
     }
