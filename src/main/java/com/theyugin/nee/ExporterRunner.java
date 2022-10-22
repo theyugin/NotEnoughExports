@@ -16,8 +16,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import gtPlusPlus.core.client.renderer.CustomOreBlockRenderer;
 import net.minecraft.util.EnumChatFormatting;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;

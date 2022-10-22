@@ -55,7 +55,8 @@ public class ExportGuiScreen extends GuiScreen {
                 EnumChatFormatting color;
 
                 if (exporter.running()) {
-                    status = String.format("Exporting %s: %d/%d", exporter.name(), exporter.progress(), exporter.total());
+                    status = String.format(
+                            "Exporting %s: %d/%d", exporter.name(), exporter.progress(), exporter.total());
                     color = EnumChatFormatting.BLUE;
                 } else {
                     status = String.format("Exporting %s: done %d", exporter.name(), exporter.total());

@@ -18,6 +18,7 @@ public class CatalystExporter implements IExporter {
     private int progress = 0;
     private int total = 0;
     private boolean running = true;
+
     public int progress() {
         return progress;
     }

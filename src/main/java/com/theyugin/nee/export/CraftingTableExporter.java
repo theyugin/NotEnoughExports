@@ -22,6 +22,7 @@ public class CraftingTableExporter implements IExporter {
     private boolean running = true;
     private int progress = 0;
     private int total = 0;
+
     public int progress() {
         return progress;
     }

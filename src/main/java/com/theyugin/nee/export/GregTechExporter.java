@@ -18,12 +18,14 @@ import net.minecraftforge.oredict.OreDictionary;
 
 public class GregTechExporter implements IExporter {
     private boolean running = true;
-    private  int progress = 0;
-    private  int total = 0;
-    public  int progress() {
+    private int progress = 0;
+    private int total = 0;
+
+    public int progress() {
         return progress;
     }
-    public  int total() {
+
+    public int total() {
         return total;
     }
 

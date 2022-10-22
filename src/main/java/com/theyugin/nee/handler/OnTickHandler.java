@@ -11,9 +11,12 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 public class OnTickHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void renderIconsHandler(TickEvent.RenderTickEvent event) throws InterruptedException {
-        if (StackRenderer.isEnabled() && ExporterRunner.isRunning() && !RenderState.renderQueue.isEmpty() && (event.phase == TickEvent.Phase.END)) {
+        if (StackRenderer.isEnabled()
+                && ExporterRunner.isRunning()
+                && !RenderState.renderQueue.isEmpty()
+                && (event.phase == TickEvent.Phase.END)) {
             StackRenderer.initialize();
-            for (int i = 0; i < 256; i++) {
+            for (int i = 0; i < 512; i++) {
                 String itemDef = RenderState.takeItemToRender();
                 if (itemDef != null) {
                     byte[] result = StackRenderer.renderIcon(StackUtils.itemStackFromName(itemDef));
