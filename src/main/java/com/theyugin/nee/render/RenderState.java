@@ -3,39 +3,68 @@ package com.theyugin.nee.render;
 import java.util.concurrent.*;
 
 public class RenderState {
-    public static final ConcurrentMap<String, byte[]> renderCache = new ConcurrentHashMap<>();
-    public static final BlockingQueue<String> renderQueue = new LinkedBlockingQueue<>();
-    public static final BlockingQueue<byte[]> resultQueue = new LinkedBlockingQueue<>();
+    public static final ConcurrentMap<RenderQuery, byte[]> renderCache = new ConcurrentHashMap<>();
+    public static final BlockingQueue<RenderQuery> renderQueue = new LinkedBlockingQueue<>();
+    public static final BlockingQueue<byte[]> resultItemQueue = new LinkedBlockingQueue<>();
+    public static final BlockingQueue<byte[]> resultFluidQueue = new LinkedBlockingQueue<>();
 
-    public static synchronized boolean isRenderQueueEmpty() {
+    public static boolean isRenderQueueEmpty() {
         return renderQueue.isEmpty();
     }
 
-    public static String takeItemToRender() {
+    public static RenderQuery getRenderQuery() {
         return renderQueue.poll();
     }
 
-    public static void putRenderResult(byte[] result) {
+    public static boolean hasResultCached(RenderQuery key) {
+        return renderCache.containsKey(key);
+    }
+
+    public static byte[] getCachedResult(RenderQuery key) {
+        return renderCache.get(key);
+    }
+
+    public static void putItemRenderResult(byte[] result) {
         try {
-            resultQueue.put(result);
+            resultItemQueue.put(result);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static void queueRender(String itemStack) {
+    public static void putFluidRenderResult(byte[] result) {
         try {
-            renderQueue.put(itemStack);
+            resultFluidQueue.put(result);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static byte[] getRenderResult() {
+    public static void queueRender(RenderQuery query) {
         try {
-            return resultQueue.take();
+            renderQueue.put(query);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static byte[] getItemRenderResult() {
+        try {
+            return resultItemQueue.take();
         } catch (InterruptedException e) {
             return null;
         }
+    }
+
+    public static byte[] getFluidRenderResult() {
+        try {
+            return resultFluidQueue.take();
+        } catch (InterruptedException e) {
+            return null;
+        }
+    }
+
+    public static void cacheResult(RenderQuery key, byte[] value) {
+        renderCache.put(key, value);
     }
 }

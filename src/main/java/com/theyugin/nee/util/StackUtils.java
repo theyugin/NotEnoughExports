@@ -2,13 +2,6 @@ package com.theyugin.nee.util;
 
 import static com.theyugin.nee.LoadedMods.IC2;
 
-import com.theyugin.nee.data.Fluid;
-import com.theyugin.nee.data.Item;
-import com.theyugin.nee.render.RenderState;
-import com.theyugin.nee.render.StackRenderer;
-import com.theyugin.nee.sql.FluidDAO;
-import com.theyugin.nee.sql.ItemDAO;
-import java.sql.SQLException;
 import java.util.*;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidRegistry;
@@ -24,34 +17,9 @@ public class StackUtils {
         return new ItemStack(item, 1, metadata);
     }
 
-    public static Item createFromStack(ItemDAO itemDAO, ItemStack itemStack) throws SQLException {
-        String itemDefName = net.minecraft.item.Item.itemRegistry.getNameForObject(itemStack.getItem());
-        int metadata = itemStack.getItemDamage();
-        String fullItemName = String.format("%s:%d", itemDefName, metadata);
-        byte[] icon;
-        if (StackRenderer.isEnabled()) {
-            if (RenderState.renderCache.containsKey(fullItemName)) {
-                icon = RenderState.renderCache.get(fullItemName);
-            } else {
-                RenderState.queueRender(fullItemName);
-                icon = RenderState.getRenderResult();
-            }
-        } else {
-            icon = null;
-        }
-        return itemDAO.create(
-                fullItemName,
-                StackUtils.isWildcard(itemStack)
-                        ? new ItemStack(itemStack.getItem(), 1, 0).getDisplayName() + " (Wildcard)"
-                        : itemStack.getDisplayName(),
-                icon);
-    }
-
-    public static Fluid createFromStack(FluidDAO fluidDAO, FluidStack fluidStack) throws SQLException {
-        return fluidDAO.create(
-                FluidRegistry.getDefaultFluidName(fluidStack.getFluid()),
-                fluidStack.getLocalizedName(),
-                StackRenderer.renderIcon(fluidStack));
+    public static FluidStack fluidStackFromName(String name) {
+        net.minecraftforge.fluids.Fluid fluid = FluidRegistry.getFluid(name.substring(name.indexOf(':') + 1));
+        return new FluidStack(fluid, 0);
     }
 
     public static Set<ItemStack> getOreItemStacks(String oreName) {
@@ -89,5 +57,20 @@ public class StackUtils {
 
     public static boolean isWildcard(ItemStack itemStack) {
         return itemStack.getItemDamage() == OreDictionary.WILDCARD_VALUE;
+    }
+
+    public static boolean isGtConfigCircuit(ItemStack i) {
+        return i != null
+                && i.getUnlocalizedName().equals("gt.integrated_circuit")
+                && i.getItemDamage() != 0
+                && i.getItemDamage() != OreDictionary.WILDCARD_VALUE;
+    }
+
+    public static int findGtConfig(ItemStack[] itemStacks) {
+        return Arrays.stream(itemStacks)
+                .filter(StackUtils::isGtConfigCircuit)
+                .findFirst()
+                .map(ItemStack::getItemDamage)
+                .orElse(0);
     }
 }

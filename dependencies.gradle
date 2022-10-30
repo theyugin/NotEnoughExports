@@ -2,11 +2,18 @@
 
 dependencies {
     shadeCompile("org.xerial:sqlite-jdbc:3.39.3.0")
+    shadeCompile("com.google.inject:guice:4.0") { transitive = false }
+    shadeCompile("aopalliance:aopalliance:1.0")
+    shadeCompile("javax.inject:javax.inject:1")
+
+    compileOnly("org.projectlombok:lombok:1.18.24")
+    annotationProcessor("org.projectlombok:lombok:1.18.24")
 
     compile("com.github.GTNewHorizons:NotEnoughItems:2.3.12-GTNH")
 
-    compile("net.industrial-craft:industrialcraft-2:2.2.828-experimental:dev")
-    compile("com.github.GTNewHorizons:GT5-Unofficial:5.09.41.74:dev")
-    compile("com.github.GTNewHorizons:ForestryMC:4.5.1:dev")
-    compile("com.github.GTNewHorizons:GTplusplus:1.7.117:dev")
+    compileOnly("net.industrial-craft:industrialcraft-2:2.2.828-experimental:dev")
+    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.41.74:dev")
+    compileOnly("com.github.GTNewHorizons:ForestryMC:4.5.1:dev")
+    compileOnly("com.github.GTNewHorizons:GTplusplus:1.7.117:dev")
+    compileOnly("com.github.GTNewHorizons:EnderIO:2.3.1.48:dev")
 }

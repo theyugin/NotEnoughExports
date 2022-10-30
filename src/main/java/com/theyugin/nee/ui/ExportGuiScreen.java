@@ -1,7 +1,7 @@
 package com.theyugin.nee.ui;
 
-import com.theyugin.nee.ExporterRunner;
-import com.theyugin.nee.export.IExporter;
+import com.theyugin.nee.component.ExporterRunner;
+import com.theyugin.nee.component.export.IExporter;
 import com.theyugin.nee.render.StackRenderer;
 import com.theyugin.nee.util.NEEUtils;
 import net.minecraft.client.gui.GuiButton;
@@ -9,7 +9,6 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.EnumChatFormatting;
 
 public class ExportGuiScreen extends GuiScreen {
-    private static Thread exporterThread = null;
     private static GuiButton exportButton;
     private static GuiButton exportIconsButton;
     private static boolean EXPORT_ICONS = false;
@@ -32,8 +31,8 @@ public class ExportGuiScreen extends GuiScreen {
         super.initGui();
     }
 
-    public static boolean exporting() {
-        return exporterThread != null && exporterThread.isAlive();
+    public boolean exporting() {
+        return ExporterRunner.exporting();
     }
 
     @Override
@@ -75,8 +74,7 @@ public class ExportGuiScreen extends GuiScreen {
     protected void actionPerformed(GuiButton button) {
         if (button.equals(exportButton)) {
             NEEUtils.sendPlayerMessage(EnumChatFormatting.GREEN + "Started export");
-            exporterThread = new Thread(new ExporterRunner());
-            exporterThread.start();
+            ExporterRunner.run();
             if (EXPORT_ICONS) {
                 NEEUtils.sendPlayerMessage(EnumChatFormatting.GREEN + "Exporting icons...");
             }

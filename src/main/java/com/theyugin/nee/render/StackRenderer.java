@@ -1,5 +1,6 @@
 package com.theyugin.nee.render;
 
+import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.guihook.GuiContainerManager;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -9,8 +10,11 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import javax.imageio.ImageIO;
 import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.IIcon;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
@@ -80,7 +84,25 @@ public class StackRenderer {
     }
 
     public static byte[] renderIcon(FluidStack fluidStack) {
-        return new byte[] {};
+        if (fluidStack == null) {
+            return null;
+        }
+        Fluid fluid = fluidStack.getFluid();
+        IIcon icon = fluid.getIcon();
+        if (icon == null) {
+            return new byte[] {};
+        }
+        // Some fluids don't set their icon colour, so we have to blend in the colour.
+        int colour = fluid.getColor();
+        GL11.glColor3ub(
+                (byte) ((colour & 0xFF0000) >> 16), (byte) ((colour & 0x00FF00) >> 8), (byte) (colour & 0x0000FF));
+
+        GuiDraw.changeTexture(TextureMap.locationBlocksTexture);
+        GuiDraw.gui.drawTexturedModelRectFromIcon(0, 0, icon, 16, 16);
+
+        // Reset colour blending.
+        GL11.glColor4f(1f, 1f, 1f, 1f);
+        return readPixels();
     }
 
     private static byte[] readPixels() {
