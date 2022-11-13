@@ -7,5 +7,6 @@ import lombok.*;
 public class Fluid {
     private String registryName;
     private String displayName;
+    private String nbt;
     private byte[] icon;
 }

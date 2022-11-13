@@ -9,9 +9,13 @@ import com.theyugin.nee.component.service.ItemService;
 import com.theyugin.nee.component.service.OreService;
 import com.theyugin.nee.persistence.vanilla.ICraftingTableRecipe;
 import com.theyugin.nee.util.StackUtils;
-import java.sql.SQLException;
+
 import java.util.*;
 import java.util.stream.Collectors;
+
+import ic2.api.recipe.IRecipeInput;
+import ic2.api.recipe.RecipeInputItemStack;
+import ic2.api.recipe.RecipeInputOreDict;
 import lombok.val;
 import lombok.var;
 import net.minecraft.item.ItemStack;
@@ -49,14 +53,14 @@ public class CraftingTableExporter implements IExporter {
 
     @Inject
     public CraftingTableExporter(
-            ItemService itemService, OreService oreService, CraftingRecipeService craftingRecipeService) {
+        ItemService itemService, OreService oreService, CraftingRecipeService craftingRecipeService) {
         this.itemService = itemService;
         this.oreService = oreService;
         this.craftingRecipeService = craftingRecipeService;
     }
 
-    private void assignOreDict(ICraftingTableRecipe recipe, List<ItemStack> itemStacks, int slot) throws SQLException {
-        val oreName = StackUtils.getOreDictValue(new HashSet<>(itemStacks));
+    private void assignOreDict(ICraftingTableRecipe recipe, List<ItemStack> itemStacks, int slot) {
+        val oreName = StackUtils.getOreDictValue(itemStacks);
         if (oreName != null) {
             val ore = oreService.createOrGet(oreName);
             for (val itemStack : itemStacks) {
@@ -71,7 +75,7 @@ public class CraftingTableExporter implements IExporter {
     }
 
     @SuppressWarnings("unchecked")
-    private void processInput(ICraftingTableRecipe recipe, int slot, Object oInput) throws SQLException {
+    private void processInput(ICraftingTableRecipe recipe, int slot, Object oInput) {
         if (oInput instanceof ItemStack) {
             craftingRecipeService.addRecipeInput(recipe, itemService.processItemStack((ItemStack) oInput), slot);
         } else if (oInput instanceof String) {
@@ -85,11 +89,19 @@ public class CraftingTableExporter implements IExporter {
                 assignOreDict(recipe, (List<ItemStack>) oInput, slot);
 
             } else if (((ArrayList<?>) oInput).stream().allMatch(StackUtils::isIC2InputItemStack)) {
-                val itemStacks = ((ArrayList<?>) oInput)
-                        .stream()
-                                .map(v -> ((ic2.api.recipe.RecipeInputItemStack) v).input)
-                                .collect(Collectors.toList());
-                assignOreDict(recipe, itemStacks, slot);
+                for (val input : (ArrayList<ic2.api.recipe.IRecipeInput>) oInput) {
+                    if (input instanceof ic2.api.recipe.RecipeInputOreDict) {
+                        craftingRecipeService.addRecipeInput(recipe, oreService.createOrGet(((RecipeInputOreDict) input).input), slot);
+                    } else if (input instanceof ic2.api.recipe.RecipeInputItemStack) {
+                        for (val itemStack: input.getInputs()) {
+                            craftingRecipeService.addRecipeInput(recipe, itemService.processItemStack(itemStack), slot);
+                        }
+                    } else if (input instanceof ic2.api.recipe.RecipeInputFluidContainer) {
+                        for (val itemStack : input.getInputs()) {
+                            craftingRecipeService.addRecipeInput(recipe, itemService.processItemStack(itemStack), slot);
+                        }
+                    }
+                }
             }
 
         } else if (oInput instanceof ItemStack[]) {
@@ -107,15 +119,15 @@ public class CraftingTableExporter implements IExporter {
         } else if (oInput != null && oInput.getClass().isArray()) {
             val unknownArrayInput = (Object[]) oInput;
             NotEnoughExports.warn(
-                    "Unknown array type: " + Arrays.stream(unknownArrayInput).collect(Collectors.toList()));
+                "Unknown array type: " + Arrays.stream(unknownArrayInput).collect(Collectors.toList()));
         } else {
             if (oInput != null)
                 NotEnoughExports.warn(
-                        "Unknown input type: " + oInput.getClass().getCanonicalName() + "\n\ttoString: " + oInput);
+                    "Unknown input type: " + oInput.getClass().getCanonicalName() + "\n\ttoString: " + oInput);
         }
     }
 
-    private void processInputs(ICraftingTableRecipe shapedRecipe, List<Object> o) throws SQLException {
+    private void processInputs(ICraftingTableRecipe shapedRecipe, List<Object> o) {
         if (o != null) {
             val oIterator = o.listIterator();
             while (oIterator.hasNext()) {
@@ -126,7 +138,7 @@ public class CraftingTableExporter implements IExporter {
         }
     }
 
-    private void processInputs(ICraftingTableRecipe shapedRecipe, Object[] o) throws SQLException {
+    private void processInputs(ICraftingTableRecipe shapedRecipe, Object[] o) {
         if (o != null) processInputs(shapedRecipe, Arrays.asList(o));
     }
 
@@ -156,7 +168,7 @@ public class CraftingTableExporter implements IExporter {
         return null;
     }
 
-    public void run() throws SQLException {
+    public void run() {
         val unhandledRecipes = new HashSet<String>();
         val recipeList = CraftingManager.getInstance().getRecipeList();
         total = recipeList.size();
@@ -164,8 +176,8 @@ public class CraftingTableExporter implements IExporter {
         for (val oRecipe : recipeList) {
             progress++;
             if (oRecipe instanceof IRecipe
-                    && ((IRecipe) oRecipe).getRecipeOutput() != null
-                    && ((IRecipe) oRecipe).getRecipeOutput().getItem() != null) {
+                && ((IRecipe) oRecipe).getRecipeOutput() != null
+                && ((IRecipe) oRecipe).getRecipeOutput().getItem() != null) {
                 val shapedInputs = getShapedInputs((IRecipe) oRecipe);
                 val shapelessInputs = getShapelessInputs((IRecipe) oRecipe);
 
@@ -183,9 +195,9 @@ public class CraftingTableExporter implements IExporter {
                     }
                 }
             }
-            if (unhandledRecipes.size() > 0) {
-                NotEnoughExports.warn("Unhandled recipe types: " + unhandledRecipes);
-            }
+        }
+        if (unhandledRecipes.size() > 0) {
+            NotEnoughExports.warn("Unhandled recipe types: " + unhandledRecipes);
         }
         running = false;
     }

@@ -20,16 +20,6 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
 
 public class StackRenderer {
-    private static boolean enabled = false;
-
-    public static boolean isEnabled() {
-        return enabled;
-    }
-
-    public static void toggleEnabled() {
-        enabled = !enabled;
-    }
-
     private static final int imageDim = 64;
     private static Framebuffer framebuffer = null;
 
@@ -77,9 +67,7 @@ public class StackRenderer {
 
     public static byte[] renderIcon(ItemStack itemStack) {
         clearBuffer();
-
-        int metadata = itemStack.getItemDamage() == 32767 ? 0 : itemStack.getItemDamage();
-        GuiContainerManager.drawItem(0, 0, new ItemStack(itemStack.getItem(), 1, metadata));
+        GuiContainerManager.drawItem(0, 0, itemStack);
         return readPixels();
     }
 

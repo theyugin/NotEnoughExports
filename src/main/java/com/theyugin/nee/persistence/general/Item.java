@@ -7,5 +7,6 @@ import lombok.*;
 public class Item {
     private String registryName;
     private String displayName;
+    private String nbt;
     private byte[] icon;
 }

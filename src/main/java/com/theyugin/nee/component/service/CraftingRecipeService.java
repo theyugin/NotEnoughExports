@@ -7,8 +7,8 @@ import com.theyugin.nee.persistence.general.Ore;
 import com.theyugin.nee.persistence.vanilla.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.val;
 
 @Singleton
@@ -21,7 +21,8 @@ public class CraftingRecipeService {
     private final PreparedStatement insertShapelessInputOreStmt;
 
     @Inject
-    public CraftingRecipeService(@NonNull Connection conn) throws SQLException {
+    @SneakyThrows
+    public CraftingRecipeService(@NonNull Connection conn) {
         insertShapedStmt =
                 conn.prepareStatement("insert or ignore into shaped_recipe (output_item_registry_name) values (?)");
         insertShapelessStmt =
@@ -36,7 +37,8 @@ public class CraftingRecipeService {
                 "insert or ignore into shapeless_recipe_input_ore (ore_name, shapeless_recipe_id, slot) values (?, ?, ?)");
     }
 
-    public ICraftingTableRecipe createRecipe(Item output, boolean shaped) throws SQLException {
+    @SneakyThrows
+    public ICraftingTableRecipe createRecipe(Item output, boolean shaped) {
         ICraftingTableRecipe recipe;
         PreparedStatement stmt;
         if (shaped) {
@@ -55,7 +57,8 @@ public class CraftingRecipeService {
         return recipe;
     }
 
-    public void addRecipeInput(ICraftingTableRecipe recipe, Item input, int slot) throws SQLException {
+    @SneakyThrows
+    public void addRecipeInput(ICraftingTableRecipe recipe, Item input, int slot) {
         PreparedStatement stmt;
         if (recipe instanceof ShapedRecipe) {
             stmt = insertShapedInputItemStmt;
@@ -68,7 +71,8 @@ public class CraftingRecipeService {
         stmt.executeUpdate();
     }
 
-    public void addRecipeInput(ICraftingTableRecipe recipe, Ore input, int slot) throws SQLException {
+    @SneakyThrows
+    public void addRecipeInput(ICraftingTableRecipe recipe, Ore input, int slot) {
         PreparedStatement stmt;
         if (recipe instanceof ShapedRecipe) {
             stmt = insertShapedInputOreStmt;

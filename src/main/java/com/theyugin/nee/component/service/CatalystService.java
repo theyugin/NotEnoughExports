@@ -6,10 +6,10 @@ import com.theyugin.nee.persistence.general.Catalyst;
 import com.theyugin.nee.persistence.general.Item;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.var;
 
 @Singleton
@@ -19,13 +19,15 @@ public class CatalystService {
     private final Set<Catalyst> catalystCache = new HashSet<>();
 
     @Inject
-    public CatalystService(@NonNull Connection conn) throws SQLException {
+    @SneakyThrows
+    public CatalystService(@NonNull Connection conn) {
         catalystStmt = conn.prepareStatement("insert or ignore into catalyst (name) values (?)");
         catalystItemStmt = conn.prepareStatement(
                 "insert or ignore into catalyst_item (catalyst_name, item_registry_name) values (?, ?)");
     }
 
-    public Catalyst getOrCreate(String name) throws SQLException {
+    @SneakyThrows
+    public Catalyst getOrCreate(String name) {
         var catalyst = Catalyst.builder().name(name).build();
         if (catalystCache.contains(catalyst)) {
             return catalyst;
@@ -36,7 +38,8 @@ public class CatalystService {
         return catalyst;
     }
 
-    public void addItem(Catalyst catalyst, Item item) throws SQLException {
+    @SneakyThrows
+    public void addItem(Catalyst catalyst, Item item) {
         catalystItemStmt.setString(1, catalyst.getName());
         catalystItemStmt.setString(2, item.getRegistryName());
         catalystItemStmt.executeUpdate();

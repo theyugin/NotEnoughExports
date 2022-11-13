@@ -14,6 +14,7 @@ create table fluid
 (
     registry_name text primary key,
     display_name  text,
+    nbt text,
     icon          blob
 ) without rowid;
 
@@ -24,13 +25,16 @@ create table gregtech_recipe
     config   integer,
     duration integer,
     voltage  integer,
+    fuel_value integer,
+    fuel_multiplier integer,
+    fuel_recipe integer,
     catalyst_name references catalyst
 );
 
 create table gregtech_recipe_input_fluid
 (
     gregtech_recipe_id references gregtech_recipe,
-    fluid_registry_name references fluid,
+    fluid_registry_name references item,
     slot   integer not null,
     amount integer,
     primary key (fluid_registry_name, gregtech_recipe_id, slot)
@@ -57,7 +61,7 @@ create table gregtech_recipe_input_ore
 create table gregtech_recipe_output_fluid
 (
     gregtech_recipe_id references gregtech_recipe,
-    fluid_registry_name references fluid,
+    fluid_registry_name references item,
     slot   integer not null,
     amount integer,
     primary key (fluid_registry_name, gregtech_recipe_id, slot)
@@ -77,6 +81,7 @@ create table item
 (
     registry_name text primary key,
     display_name  text,
+    nbt text,
     icon          blob
 ) without rowid;
 

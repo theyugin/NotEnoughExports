@@ -11,5 +11,8 @@ public class GregtechRecipe {
     private Integer amperage;
     private Integer duration;
     private Integer config;
+    private Integer fuelValue;
+    private Integer fuelMultiplier;
+    private Boolean fuelRecipe;
     private Catalyst catalystName;
 }

@@ -1,5 +1,7 @@
 package com.theyugin.nee.render;
 
+import lombok.val;
+
 import java.util.concurrent.*;
 
 public class RenderState {
@@ -10,6 +12,36 @@ public class RenderState {
 
     public static boolean isRenderQueueEmpty() {
         return renderQueue.isEmpty();
+    }
+
+    public static void render() {
+        val renderQuery = getRenderQuery();
+        if (renderQuery != null) {
+            if (hasResultCached(renderQuery)) {
+                switch (renderQuery.renderType()) {
+                    case ITEM:
+                        putItemRenderResult(getCachedResult(renderQuery));
+                        break;
+                    case FLUID:
+                        putFluidRenderResult(getCachedResult(renderQuery));
+                        break;
+                }
+            } else {
+                byte[] result;
+                switch (renderQuery.renderType()) {
+                    case ITEM:
+                        result = StackRenderer.renderIcon(renderQuery.getItemStack());
+                        cacheResult(renderQuery, result);
+                        putItemRenderResult(result);
+                        break;
+                    case FLUID:
+                        result = StackRenderer.renderIcon(renderQuery.getFluidStack());
+                        cacheResult(renderQuery, result);
+                        putFluidRenderResult(result);
+                        break;
+                }
+            }
+        }
     }
 
     public static RenderQuery getRenderQuery() {

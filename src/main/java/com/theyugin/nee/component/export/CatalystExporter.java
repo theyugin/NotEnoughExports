@@ -4,7 +4,6 @@ import codechicken.nei.recipe.RecipeCatalysts;
 import com.google.inject.Inject;
 import com.theyugin.nee.component.service.CatalystService;
 import com.theyugin.nee.component.service.ItemService;
-import java.sql.SQLException;
 import lombok.val;
 
 public class CatalystExporter implements IExporter {
@@ -42,7 +41,7 @@ public class CatalystExporter implements IExporter {
     }
 
     @Override
-    public void run() throws SQLException {
+    public void run() {
         val catalystMap = RecipeCatalysts.getPositionedRecipeCatalystMap();
         total = catalystMap.size();
         for (val stringListEntry : catalystMap.entrySet()) {

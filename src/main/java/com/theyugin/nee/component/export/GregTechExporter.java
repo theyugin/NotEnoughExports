@@ -1,14 +1,17 @@
 package com.theyugin.nee.component.export;
 
 import com.google.inject.Inject;
+import com.theyugin.nee.NotEnoughExports;
 import com.theyugin.nee.component.service.CatalystService;
 import com.theyugin.nee.component.service.FluidService;
 import com.theyugin.nee.component.service.GregtechRecipeService;
 import com.theyugin.nee.component.service.ItemService;
+import com.theyugin.nee.persistence.gregtech.GregtechRecipe;
 import com.theyugin.nee.util.StackUtils;
 import gregtech.api.util.GT_Recipe;
-import java.sql.SQLException;
+
 import java.util.*;
+
 import lombok.val;
 
 public class GregTechExporter implements IExporter {
@@ -40,10 +43,10 @@ public class GregTechExporter implements IExporter {
 
     @Inject
     public GregTechExporter(
-            GregtechRecipeService gregtechRecipeService,
-            ItemService itemService,
-            FluidService fluidService,
-            CatalystService catalystService) {
+        GregtechRecipeService gregtechRecipeService,
+        ItemService itemService,
+        FluidService fluidService,
+        CatalystService catalystService) {
         this.gregtechRecipeService = gregtechRecipeService;
         this.itemService = itemService;
         this.fluidService = fluidService;
@@ -58,71 +61,79 @@ public class GregTechExporter implements IExporter {
         return acc;
     }
 
-    public void run() throws SQLException {
+    public void run() {
         val gtRecipeMaps = GT_Recipe.GT_Recipe_Map.sMappings;
         total = countTotalRecipes(gtRecipeMaps);
         for (val gtRecipeMap : gtRecipeMaps) {
-            for (val gtRecipe : gtRecipeMap.mRecipeList) {
-                progress++;
-                if (!gtRecipe.mFakeRecipe && gtRecipe.mEnabled) {
-
-                    val recipe = gregtechRecipeService.createRecipe(
-                            catalystService.getOrCreate(gtRecipeMap.mUnlocalizedName),
-                            gtRecipe.mEUt,
-                            StackUtils.findGtConfig(gtRecipe.mInputs),
-                            gtRecipe.mDuration,
-                            gtRecipeMap.mAmperage);
-                    val itemInputsIterator = Arrays.asList(gtRecipe.mInputs).listIterator();
-                    while (itemInputsIterator.hasNext()) {
-                        val slot = itemInputsIterator.nextIndex();
-                        val itemStack = itemInputsIterator.next();
-                        if (itemStack == null) {
-                            continue;
+                for (val gtRecipe : gtRecipeMap.mRecipeList) {
+                    progress++;
+                    if (!gtRecipe.mFakeRecipe && gtRecipe.mEnabled) {
+                        GregtechRecipe recipe;
+                        if (gtRecipeMap instanceof GT_Recipe.GT_Recipe_Map_Fuel) {
+                            recipe = gregtechRecipeService.createFuelRecipe(
+                                catalystService.getOrCreate(gtRecipeMap.mUnlocalizedName),
+                                gtRecipeMap.mNEISpecialValueMultiplier,
+                                gtRecipe.mSpecialValue
+                            );
+                        } else {
+                            recipe = gregtechRecipeService.createRecipe(
+                                catalystService.getOrCreate(gtRecipeMap.mUnlocalizedName),
+                                gtRecipe.mEUt,
+                                StackUtils.findGtConfig(gtRecipe.mInputs),
+                                gtRecipe.mDuration,
+                                gtRecipeMap.mAmperage);
                         }
-                        if (StackUtils.isGtConfigCircuit(itemStack)) {
-                            continue;
-                        }
-                        gregtechRecipeService.addInput(
+                        val itemInputsIterator = Arrays.asList(gtRecipe.mInputs).listIterator();
+                        while (itemInputsIterator.hasNext()) {
+                            val slot = itemInputsIterator.nextIndex();
+                            val itemStack = itemInputsIterator.next();
+                            if (itemStack == null) {
+                                continue;
+                            }
+                            if (StackUtils.isGtConfigCircuit(itemStack)) {
+                                continue;
+                            }
+                            gregtechRecipeService.addInput(
                                 recipe, itemService.processItemStack(itemStack), slot, itemStack.stackSize);
-                    }
+                        }
 
-                    val fluidInputsIterator =
+                        val fluidInputsIterator =
                             Arrays.asList(gtRecipe.mFluidInputs).listIterator();
-                    while (fluidInputsIterator.hasNext()) {
-                        val slot = fluidInputsIterator.nextIndex();
-                        val fluidStack = fluidInputsIterator.next();
-                        if (fluidStack == null) {
-                            continue;
-                        }
-                        gregtechRecipeService.addInput(
+                        while (fluidInputsIterator.hasNext()) {
+                            val slot = fluidInputsIterator.nextIndex();
+                            val fluidStack = fluidInputsIterator.next();
+                            if (fluidStack == null) {
+                                continue;
+                            }
+                            gregtechRecipeService.addInput(
                                 recipe, fluidService.processFluidStack(fluidStack), slot, fluidStack.amount);
-                    }
-
-                    val itemOutputsIterator = Arrays.asList(gtRecipe.mOutputs).listIterator();
-                    while (itemOutputsIterator.hasNext()) {
-                        val slot = itemOutputsIterator.nextIndex();
-                        val itemStack = itemOutputsIterator.next();
-                        if (itemStack == null) {
-                            continue;
                         }
-                        val chance = gtRecipe.mChances[slot];
-                        gregtechRecipeService.addOutput(
+
+                        val itemOutputsIterator = Arrays.asList(gtRecipe.mOutputs).listIterator();
+                        while (itemOutputsIterator.hasNext()) {
+                            val slot = itemOutputsIterator.nextIndex();
+                            val itemStack = itemOutputsIterator.next();
+                            if (itemStack == null) {
+                                continue;
+                            }
+                            val chance = gtRecipe.mChances[slot];
+                            gregtechRecipeService.addOutput(
                                 recipe, itemService.processItemStack(itemStack), slot, itemStack.stackSize, chance);
-                    }
-
-                    val fluidOutputsIterator =
-                            Arrays.asList(gtRecipe.mFluidOutputs).listIterator();
-                    while (fluidOutputsIterator.hasNext()) {
-                        val slot = fluidOutputsIterator.nextIndex();
-                        val fluidStack = fluidOutputsIterator.next();
-                        if (fluidStack == null) {
-                            continue;
                         }
-                        gregtechRecipeService.addOutput(
+
+                        val fluidOutputsIterator =
+                            Arrays.asList(gtRecipe.mFluidOutputs).listIterator();
+                        while (fluidOutputsIterator.hasNext()) {
+                            val slot = fluidOutputsIterator.nextIndex();
+                            val fluidStack = fluidOutputsIterator.next();
+                            if (fluidStack == null) {
+                                continue;
+                            }
+                            gregtechRecipeService.addOutput(
                                 recipe, fluidService.processFluidStack(fluidStack), slot, fluidStack.amount);
+                        }
                     }
                 }
-            }
         }
         running = false;
     }

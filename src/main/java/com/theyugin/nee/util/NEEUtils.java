@@ -16,7 +16,6 @@ public class NEEUtils {
     public static Connection createConnection() throws SQLException {
         val config = new SQLiteConfig();
         config.setSynchronous(SQLiteConfig.SynchronousMode.NORMAL);
-        config.setJournalMode(SQLiteConfig.JournalMode.WAL);
         config.setTempStore(SQLiteConfig.TempStore.MEMORY);
         val ds = new SQLiteDataSource(config);
         ds.setUrl("jdbc:sqlite:nee.sqlite3");

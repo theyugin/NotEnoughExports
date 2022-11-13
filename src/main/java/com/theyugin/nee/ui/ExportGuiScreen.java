@@ -1,21 +1,23 @@
 package com.theyugin.nee.ui;
 
+import com.theyugin.nee.Config;
 import com.theyugin.nee.component.ExporterRunner;
 import com.theyugin.nee.component.export.IExporter;
-import com.theyugin.nee.render.StackRenderer;
 import com.theyugin.nee.util.NEEUtils;
+import cpw.mods.fml.client.GuiScrollingList;
+import lombok.var;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.EnumChatFormatting;
 
 public class ExportGuiScreen extends GuiScreen {
     private static GuiButton exportButton;
-    private static GuiButton exportIconsButton;
-    private static boolean EXPORT_ICONS = false;
+    private GuiScrollingList scrollingList;
+    public static final ExportGuiOption exportIcons = new ExportGuiOption("export icons", Config::toggleExportIcons, Config::exportIcons);
+    public static final ExportGuiOption exportGregTechOption = new ExportGuiOption("export gregtech", Config::toggleExportGregtech, Config::exportGregtech);
+    public static final ExportGuiOption exportCatalysts = new ExportGuiOption("export catalysts", Config::toggleExportCatalysts, Config::exportCatalysts);
+    public static final ExportGuiOption exportCraftingTable = new ExportGuiOption("export crafting table", Config::toggleExportCraftingTable, Config::exportCraftingTable);
 
-    private static String exportIconsLabel() {
-        return String.format("Export item icons: %b", EXPORT_ICONS);
-    }
 
     private static String exportLabel() {
         return "Run export";
@@ -24,10 +26,11 @@ public class ExportGuiScreen extends GuiScreen {
     @SuppressWarnings("unchecked")
     @Override
     public void initGui() {
+        int width = 300;
+        scrollingList = new ExportGuiOptionList(this, width, (this.width - width) / 2,
+            exportIcons, exportCatalysts, exportGregTechOption, exportCraftingTable);
         exportButton = new GuiButton(1, 10, height - 50, exportLabel());
-        exportIconsButton = new GuiButton(2, 10, 40, exportIconsLabel());
         this.buttonList.add(exportButton);
-        this.buttonList.add(exportIconsButton);
         super.initGui();
     }
 
@@ -38,24 +41,23 @@ public class ExportGuiScreen extends GuiScreen {
     @Override
     public void drawScreen(int mx, int my, float partTicks) {
         drawDefaultBackground();
+        drawRect(0, 0, width, 60, 0xFF222222);
+        drawRect(0, height - 60, width, height, 0xFF222222);
         int middle = (width / 2) - (exportButton.width / 2);
 
         exportButton.xPosition = middle;
         exportButton.yPosition = height - 50;
         exportButton.enabled = !exporting();
 
-        exportIconsButton.xPosition = middle;
-        exportIconsButton.enabled = !exporting();
-
         if (exporting() && ExporterRunner.isRunning()) {
-            int labelPosition = 60;
+            var labelPosition = 60;
             for (IExporter exporter : ExporterRunner.loadedExporters) {
                 String status;
                 EnumChatFormatting color;
 
                 if (exporter.running()) {
                     status = String.format(
-                            "Exporting %s: %d/%d", exporter.name(), exporter.progress(), exporter.total());
+                        "Exporting %s: %d/%d", exporter.name(), exporter.progress(), exporter.total());
                     color = EnumChatFormatting.BLUE;
                 } else {
                     status = String.format("Exporting %s: done %d", exporter.name(), exporter.total());
@@ -65,6 +67,8 @@ public class ExportGuiScreen extends GuiScreen {
                 mc.fontRenderer.drawString(color + status, middle, labelPosition, 0xFFFFFF, true);
                 labelPosition += 10;
             }
+        } else {
+            scrollingList.drawScreen(mx, my, partTicks);
         }
 
         super.drawScreen(mx, my, partTicks);
@@ -72,17 +76,14 @@ public class ExportGuiScreen extends GuiScreen {
 
     @Override
     protected void actionPerformed(GuiButton button) {
-        if (button.equals(exportButton)) {
-            NEEUtils.sendPlayerMessage(EnumChatFormatting.GREEN + "Started export");
-            ExporterRunner.run();
-            if (EXPORT_ICONS) {
-                NEEUtils.sendPlayerMessage(EnumChatFormatting.GREEN + "Exporting icons...");
+        if (!exporting()) {
+            if (button.equals(exportButton)) {
+                NEEUtils.sendPlayerMessage(EnumChatFormatting.GREEN + "Started export");
+                ExporterRunner.run();
+                if (exportIcons.isEnabled()) {
+                    NEEUtils.sendPlayerMessage(EnumChatFormatting.GREEN + "Exporting icons...");
+                }
             }
-        } else if (button.equals(exportIconsButton)) {
-            EXPORT_ICONS = !EXPORT_ICONS;
-            StackRenderer.toggleEnabled();
-            button.displayString = exportIconsLabel();
-        } else if (exporting()) {
         } else super.actionPerformed(button);
     }
 

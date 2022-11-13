@@ -6,10 +6,13 @@ import com.theyugin.nee.persistence.general.Item;
 import com.theyugin.nee.persistence.general.Ore;
 import com.theyugin.nee.persistence.general.OreItem;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.*;
+
+import cpw.mods.fml.common.registry.GameRegistry;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.val;
+import net.minecraft.block.Block;
 
 @Singleton
 public class OreService {
@@ -22,7 +25,8 @@ public class OreService {
         this.conn = conn;
     }
 
-    public Ore createOrGet(String name) throws SQLException {
+    @SneakyThrows
+    public Ore createOrGet(String name) {
         val ore = Ore.builder().name(name).build();
         if (oreCache.contains(ore)) {
             return ore;
@@ -34,16 +38,16 @@ public class OreService {
         return ore;
     }
 
-    public OreItem addItem(Ore ore, Item item) throws SQLException {
+    @SneakyThrows
+    public void addItem(Ore ore, Item item) {
         val oreItem = OreItem.builder().ore(ore).item(item).build();
         if (oreItemCache.contains(oreItem)) {
-            return oreItem;
+            return;
         }
         val stmt = conn.prepareStatement("insert or ignore into ore_item (item_registry_name, ore_name) values (?, ?)");
         stmt.setString(1, item.getRegistryName());
         stmt.setString(2, ore.getName());
         stmt.executeUpdate();
         oreItemCache.add(oreItem);
-        return oreItem;
     }
 }
