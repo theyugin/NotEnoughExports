@@ -1,23 +1,23 @@
 package com.theyugin.nee.ui;
 
 import com.theyugin.nee.Config;
+import com.theyugin.nee.LoadedMods;
 import com.theyugin.nee.component.ExporterRunner;
 import com.theyugin.nee.component.export.IExporter;
 import com.theyugin.nee.util.NEEUtils;
 import cpw.mods.fml.client.GuiScrollingList;
+import lombok.val;
 import lombok.var;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraftforge.event.world.ChunkEvent;
+import thaumcraft.api.aspects.Aspect;
+import thaumcraft.client.lib.UtilsFX;
 
 public class ExportGuiScreen extends GuiScreen {
     private static GuiButton exportButton;
     private GuiScrollingList scrollingList;
-    public static final ExportGuiOption exportIcons = new ExportGuiOption("export icons", Config::toggleExportIcons, Config::exportIcons);
-    public static final ExportGuiOption exportGregTechOption = new ExportGuiOption("export gregtech", Config::toggleExportGregtech, Config::exportGregtech);
-    public static final ExportGuiOption exportCatalysts = new ExportGuiOption("export catalysts", Config::toggleExportCatalysts, Config::exportCatalysts);
-    public static final ExportGuiOption exportCraftingTable = new ExportGuiOption("export crafting table", Config::toggleExportCraftingTable, Config::exportCraftingTable);
-
 
     private static String exportLabel() {
         return "Run export";
@@ -27,8 +27,22 @@ public class ExportGuiScreen extends GuiScreen {
     @Override
     public void initGui() {
         int width = 300;
-        scrollingList = new ExportGuiOptionList(this, width, (this.width - width) / 2,
-            exportIcons, exportCatalysts, exportGregTechOption, exportCraftingTable);
+        val optionList = new ExportGuiOptionList(
+                this,
+                width,
+                (this.width - width) / 2,
+                new ExportGuiOption("export icons", Config::toggleExportIcons, Config::exportIcons),
+                new ExportGuiOption(
+                        "export crafting table", Config::toggleExportCraftingTable, Config::exportCraftingTable),
+                new ExportGuiOption("export catalysts", Config::toggleExportCatalysts, Config::exportCatalysts));
+        if (LoadedMods.GREGTECH.isLoaded())
+            optionList.addOption(
+                    new ExportGuiOption("export gregtech", Config::toggleExportGregtech, Config::exportGregtech));
+        if (LoadedMods.THAUMCRAFT.isLoaded())
+            optionList.addOption(
+                new ExportGuiOption("export thaumcraft", Config::toggleExportThaumcraft, Config::exportThaumcraft)
+            );
+        scrollingList = optionList;
         exportButton = new GuiButton(1, 10, height - 50, exportLabel());
         this.buttonList.add(exportButton);
         super.initGui();
@@ -50,6 +64,7 @@ public class ExportGuiScreen extends GuiScreen {
         exportButton.enabled = !exporting();
 
         if (exporting() && ExporterRunner.isRunning()) {
+            drawRect((this.width - 300) / 2, 60, (this.width + 300) / 2, this.height - 60, 0x88000000);
             var labelPosition = 60;
             for (IExporter exporter : ExporterRunner.loadedExporters) {
                 String status;
@@ -57,7 +72,7 @@ public class ExportGuiScreen extends GuiScreen {
 
                 if (exporter.running()) {
                     status = String.format(
-                        "Exporting %s: %d/%d", exporter.name(), exporter.progress(), exporter.total());
+                            "Exporting %s: %d/%d", exporter.name(), exporter.progress(), exporter.total());
                     color = EnumChatFormatting.BLUE;
                 } else {
                     status = String.format("Exporting %s: done %d", exporter.name(), exporter.total());
@@ -80,9 +95,6 @@ public class ExportGuiScreen extends GuiScreen {
             if (button.equals(exportButton)) {
                 NEEUtils.sendPlayerMessage(EnumChatFormatting.GREEN + "Started export");
                 ExporterRunner.run();
-                if (exportIcons.isEnabled()) {
-                    NEEUtils.sendPlayerMessage(EnumChatFormatting.GREEN + "Exporting icons...");
-                }
             }
         } else super.actionPerformed(button);
     }

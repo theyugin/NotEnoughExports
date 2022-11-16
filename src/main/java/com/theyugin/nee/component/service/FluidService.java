@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -18,9 +17,8 @@ import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
 @Singleton
-public class FluidService {
+public class FluidService extends AbstractCacheableService<Fluid> {
     private final PreparedStatement insertStmt;
-    private final Set<Fluid> fluidCache = new HashSet<>();
 
     @Inject
     @SneakyThrows
@@ -38,10 +36,9 @@ public class FluidService {
                 .displayName(displayName)
                 .build();
         new FluidStack(fluidStack, 1);
-        if (fluidCache.contains(fluid)) {
+        if (putInCache(fluid)) {
             return fluid;
         }
-        fluidCache.add(fluid);
         byte[] icon;
         if (Config.exportIcons()) {
             RenderState.queueRender(RenderQuery.of(fluidStack));

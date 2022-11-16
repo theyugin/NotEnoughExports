@@ -9,13 +9,9 @@ import com.theyugin.nee.component.service.ItemService;
 import com.theyugin.nee.component.service.OreService;
 import com.theyugin.nee.persistence.vanilla.ICraftingTableRecipe;
 import com.theyugin.nee.util.StackUtils;
-
+import ic2.api.recipe.RecipeInputOreDict;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import ic2.api.recipe.IRecipeInput;
-import ic2.api.recipe.RecipeInputItemStack;
-import ic2.api.recipe.RecipeInputOreDict;
 import lombok.val;
 import lombok.var;
 import net.minecraft.item.ItemStack;
@@ -53,7 +49,7 @@ public class CraftingTableExporter implements IExporter {
 
     @Inject
     public CraftingTableExporter(
-        ItemService itemService, OreService oreService, CraftingRecipeService craftingRecipeService) {
+            ItemService itemService, OreService oreService, CraftingRecipeService craftingRecipeService) {
         this.itemService = itemService;
         this.oreService = oreService;
         this.craftingRecipeService = craftingRecipeService;
@@ -91,9 +87,10 @@ public class CraftingTableExporter implements IExporter {
             } else if (((ArrayList<?>) oInput).stream().allMatch(StackUtils::isIC2InputItemStack)) {
                 for (val input : (ArrayList<ic2.api.recipe.IRecipeInput>) oInput) {
                     if (input instanceof ic2.api.recipe.RecipeInputOreDict) {
-                        craftingRecipeService.addRecipeInput(recipe, oreService.createOrGet(((RecipeInputOreDict) input).input), slot);
+                        craftingRecipeService.addRecipeInput(
+                                recipe, oreService.createOrGet(((RecipeInputOreDict) input).input), slot);
                     } else if (input instanceof ic2.api.recipe.RecipeInputItemStack) {
-                        for (val itemStack: input.getInputs()) {
+                        for (val itemStack : input.getInputs()) {
                             craftingRecipeService.addRecipeInput(recipe, itemService.processItemStack(itemStack), slot);
                         }
                     } else if (input instanceof ic2.api.recipe.RecipeInputFluidContainer) {
@@ -119,11 +116,11 @@ public class CraftingTableExporter implements IExporter {
         } else if (oInput != null && oInput.getClass().isArray()) {
             val unknownArrayInput = (Object[]) oInput;
             NotEnoughExports.warn(
-                "Unknown array type: " + Arrays.stream(unknownArrayInput).collect(Collectors.toList()));
+                    "Unknown array type: " + Arrays.stream(unknownArrayInput).collect(Collectors.toList()));
         } else {
             if (oInput != null)
                 NotEnoughExports.warn(
-                    "Unknown input type: " + oInput.getClass().getCanonicalName() + "\n\ttoString: " + oInput);
+                        "Unknown input type: " + oInput.getClass().getCanonicalName() + "\n\ttoString: " + oInput);
         }
     }
 
@@ -176,8 +173,8 @@ public class CraftingTableExporter implements IExporter {
         for (val oRecipe : recipeList) {
             progress++;
             if (oRecipe instanceof IRecipe
-                && ((IRecipe) oRecipe).getRecipeOutput() != null
-                && ((IRecipe) oRecipe).getRecipeOutput().getItem() != null) {
+                    && ((IRecipe) oRecipe).getRecipeOutput() != null
+                    && ((IRecipe) oRecipe).getRecipeOutput().getItem() != null) {
                 val shapedInputs = getShapedInputs((IRecipe) oRecipe);
                 val shapelessInputs = getShapelessInputs((IRecipe) oRecipe);
 

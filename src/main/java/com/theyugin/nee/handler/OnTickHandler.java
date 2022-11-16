@@ -3,14 +3,10 @@ package com.theyugin.nee.handler;
 import com.theyugin.nee.Config;
 import com.theyugin.nee.component.ExporterRunner;
 import com.theyugin.nee.render.RenderState;
-import com.theyugin.nee.render.RenderType;
 import com.theyugin.nee.render.StackRenderer;
-import com.theyugin.nee.util.StackUtils;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
-import lombok.val;
-import net.minecraft.client.renderer.entity.Render;
 
 public class OnTickHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)

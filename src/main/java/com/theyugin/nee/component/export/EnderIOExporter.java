@@ -1,10 +1,8 @@
 package com.theyugin.nee.component.export;
 
 import com.theyugin.nee.util.StackUtils;
-import crazypants.enderio.EnderIO;
 import crazypants.enderio.machine.recipe.IRecipe;
 import crazypants.enderio.machine.recipe.OreDictionaryRecipeInput;
-import crazypants.enderio.machine.recipe.RecipeInput;
 import crazypants.enderio.machine.vat.VatRecipeManager;
 import lombok.val;
 
@@ -32,6 +30,7 @@ public class EnderIOExporter implements IExporter {
     public boolean running() {
         return running;
     }
+
     private void processRecipe(IRecipe recipe, String type) {
         for (val input : recipe.getInputs()) {
             if (input instanceof OreDictionaryRecipeInput) {
@@ -45,13 +44,12 @@ public class EnderIOExporter implements IExporter {
                 }
             }
         }
-
     }
+
     @Override
     public void run() {
         for (IRecipe recipe : VatRecipeManager.getInstance().getRecipes()) {
             processRecipe(recipe, "vat");
         }
-
     }
 }

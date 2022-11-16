@@ -14,20 +14,20 @@ create table fluid
 (
     registry_name text primary key,
     display_name  text,
-    nbt text,
+    nbt           text,
     icon          blob
 ) without rowid;
 
 create table gregtech_recipe
 (
-    id       integer primary key,
-    amperage integer,
-    config   integer,
-    duration integer,
-    voltage  integer,
-    fuel_value integer,
+    id              integer primary key,
+    amperage        integer,
+    config          integer,
+    duration        integer,
+    voltage         integer,
+    fuel_value      integer,
     fuel_multiplier integer,
-    fuel_recipe integer,
+    fuel_recipe     integer,
     catalyst_name references catalyst
 );
 
@@ -81,7 +81,7 @@ create table item
 (
     registry_name text primary key,
     display_name  text,
-    nbt text,
+    nbt           text,
     icon          blob
 ) without rowid;
 
@@ -139,4 +139,10 @@ create table shapeless_recipe_input_ore
     shapeless_recipe_id references shapeless_recipe,
     slot integer not null,
     primary key (ore_name, shapeless_recipe_id, slot)
+) without rowid;
+create table aspect
+(
+    tag  text primary key,
+    name text,
+    icon blob
 ) without rowid;

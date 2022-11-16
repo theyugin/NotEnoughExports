@@ -11,5 +11,6 @@ public class ServiceModule extends AbstractModule {
         bind(GregtechRecipeService.class);
         bind(ItemService.class);
         bind(OreService.class);
+        bind(AspectService.class);
     }
 }

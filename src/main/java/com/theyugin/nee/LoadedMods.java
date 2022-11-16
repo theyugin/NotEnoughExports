@@ -9,6 +9,7 @@ public enum LoadedMods {
     FORESTRY("Forestry"),
     ENDERIO("EnderIO"),
     GTPLUSLUS("miscutils"),
+    THAUMCRAFT("Thaumcraft"),
     ;
     private final String modId;
     private boolean isLoaded = false;

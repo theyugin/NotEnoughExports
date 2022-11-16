@@ -43,7 +43,7 @@ public class GregtechRecipeService {
                 .amperage(amperage)
                 .voltage(voltage)
                 .catalystName(catalyst)
-            .fuelRecipe(false)
+                .fuelRecipe(false)
                 .build();
         gregtechRecipeStmt.setInt(1, amperage);
         gregtechRecipeStmt.setInt(2, config);
@@ -61,7 +61,12 @@ public class GregtechRecipeService {
 
     @SneakyThrows
     public GregtechRecipe createFuelRecipe(Catalyst catalyst, int value, int multiplier) {
-        val recipe = GregtechRecipe.builder().catalystName(catalyst).fuelValue(value).fuelMultiplier(multiplier).fuelRecipe(true).build();
+        val recipe = GregtechRecipe.builder()
+                .catalystName(catalyst)
+                .fuelValue(value)
+                .fuelMultiplier(multiplier)
+                .fuelRecipe(true)
+                .build();
         gregtechRecipeStmt.setInt(6, value);
         gregtechRecipeStmt.setInt(7, multiplier);
         gregtechRecipeStmt.setBoolean(8, true);

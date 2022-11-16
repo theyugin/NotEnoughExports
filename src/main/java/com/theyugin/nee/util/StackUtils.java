@@ -3,7 +3,6 @@ package com.theyugin.nee.util;
 import static com.theyugin.nee.LoadedMods.IC2;
 
 import java.util.*;
-
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -15,6 +14,7 @@ public class StackUtils {
     public static String getOreDictValue(ItemStack[] itemStacks) {
         return getOreDictValue(Arrays.asList(itemStacks));
     }
+
     public static String getOreDictValue(List<ItemStack> itemStacks) {
         return getOreDictValue(new HashSet<>(itemStacks));
     }

@@ -18,6 +18,8 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
+import thaumcraft.api.aspects.Aspect;
+import thaumcraft.client.lib.UtilsFX;
 
 public class StackRenderer {
     private static final int imageDim = 64;
@@ -63,6 +65,12 @@ public class StackRenderer {
 
         framebuffer.bindFramebuffer(true);
         OpenGlHelper.func_153171_g(GL30.GL_READ_FRAMEBUFFER, framebuffer.framebufferObject);
+    }
+
+    public static byte[] renderIcon(Aspect aspect) {
+        clearBuffer();
+        UtilsFX.drawTag(0, 0, aspect, 0.0F, 0, 0.0D, 771, 1.0F, false);
+        return readPixels();
     }
 
     public static byte[] renderIcon(ItemStack itemStack) {

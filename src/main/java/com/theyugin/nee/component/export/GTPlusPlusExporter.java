@@ -13,8 +13,7 @@ public class GTPlusPlusExporter implements IExporter {
     public void run() {
         for (val sMappingsEx : GTPP_Recipe.GTPP_Recipe_Map_Internal.sMappingsEx) {
             val mappingName = sMappingsEx.mUnlocalizedName;
-            for (GT_Recipe gt_recipe : sMappingsEx.mRecipeList) {
-            }
+            for (GT_Recipe gt_recipe : sMappingsEx.mRecipeList) {}
         }
     }
 

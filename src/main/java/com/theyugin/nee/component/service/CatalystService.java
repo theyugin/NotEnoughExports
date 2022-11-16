@@ -13,10 +13,9 @@ import lombok.SneakyThrows;
 import lombok.var;
 
 @Singleton
-public class CatalystService {
+public class CatalystService extends AbstractCacheableService<Catalyst> {
     private final PreparedStatement catalystStmt;
     private final PreparedStatement catalystItemStmt;
-    private final Set<Catalyst> catalystCache = new HashSet<>();
 
     @Inject
     @SneakyThrows
@@ -29,10 +28,9 @@ public class CatalystService {
     @SneakyThrows
     public Catalyst getOrCreate(String name) {
         var catalyst = Catalyst.builder().name(name).build();
-        if (catalystCache.contains(catalyst)) {
+        if (putInCache(catalyst)) {
             return catalyst;
         }
-        catalystCache.add(catalyst);
         catalystStmt.setString(1, name);
         catalystStmt.executeUpdate();
         return catalyst;

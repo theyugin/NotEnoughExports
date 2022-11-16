@@ -1,14 +1,14 @@
 package com.theyugin.nee.render;
 
-import lombok.val;
-
 import java.util.concurrent.*;
+import lombok.val;
 
 public class RenderState {
     public static final ConcurrentMap<RenderQuery, byte[]> renderCache = new ConcurrentHashMap<>();
     public static final BlockingQueue<RenderQuery> renderQueue = new LinkedBlockingQueue<>();
     public static final BlockingQueue<byte[]> resultItemQueue = new LinkedBlockingQueue<>();
     public static final BlockingQueue<byte[]> resultFluidQueue = new LinkedBlockingQueue<>();
+    public static final BlockingQueue<byte[]> resultAspectQueue = new LinkedBlockingQueue<>();
 
     public static boolean isRenderQueueEmpty() {
         return renderQueue.isEmpty();
@@ -25,6 +25,9 @@ public class RenderState {
                     case FLUID:
                         putFluidRenderResult(getCachedResult(renderQuery));
                         break;
+                    case ASPECT:
+                        putAspectRenderResult(getCachedResult(renderQuery));
+                        break;
                 }
             } else {
                 byte[] result;
@@ -39,6 +42,10 @@ public class RenderState {
                         cacheResult(renderQuery, result);
                         putFluidRenderResult(result);
                         break;
+                    case ASPECT:
+                        result = StackRenderer.renderIcon(renderQuery.getAspect());
+                        cacheResult(renderQuery, result);
+                        putAspectRenderResult(result);
                 }
             }
         }
@@ -72,6 +79,14 @@ public class RenderState {
         }
     }
 
+    public static void putAspectRenderResult(byte[] result) {
+        try {
+            resultAspectQueue.put(result);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void queueRender(RenderQuery query) {
         try {
             renderQueue.put(query);
@@ -93,6 +108,14 @@ public class RenderState {
             return resultFluidQueue.take();
         } catch (InterruptedException e) {
             return null;
+        }
+    }
+
+    public static byte[] getAspectRenderResult() {
+        try {
+            return resultAspectQueue.take();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

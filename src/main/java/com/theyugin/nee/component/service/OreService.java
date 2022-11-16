@@ -7,17 +7,13 @@ import com.theyugin.nee.persistence.general.Ore;
 import com.theyugin.nee.persistence.general.OreItem;
 import java.sql.Connection;
 import java.util.*;
-
-import cpw.mods.fml.common.registry.GameRegistry;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
-import net.minecraft.block.Block;
 
 @Singleton
-public class OreService {
+public class OreService extends AbstractCacheableService<Ore> {
     private final Connection conn;
-    private final Set<Ore> oreCache = new HashSet<>();
     private final Set<OreItem> oreItemCache = new HashSet<>();
 
     @Inject
@@ -28,13 +24,12 @@ public class OreService {
     @SneakyThrows
     public Ore createOrGet(String name) {
         val ore = Ore.builder().name(name).build();
-        if (oreCache.contains(ore)) {
+        if (putInCache(ore)) {
             return ore;
         }
         val stmt = conn.prepareStatement("insert or ignore into ore (name) values (?)");
         stmt.setString(1, name);
         stmt.executeUpdate();
-        oreCache.add(ore);
         return ore;
     }
 

@@ -7,29 +7,25 @@ import com.theyugin.nee.Config;
 import com.theyugin.nee.persistence.general.Item;
 import com.theyugin.nee.render.RenderQuery;
 import com.theyugin.nee.render.RenderState;
-
+import com.theyugin.nee.util.StackUtils;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.theyugin.nee.render.StackRenderer;
-import com.theyugin.nee.util.StackUtils;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
 import net.minecraft.item.ItemStack;
 
 @Singleton
-public class ItemService {
-    private final Set<Item> cache = new HashSet<>();
+public class ItemService extends AbstractCacheableService<Item> {
     private final PreparedStatement insertStmt;
 
     @Inject
     @SneakyThrows
     public ItemService(@NonNull Connection conn) {
         insertStmt = conn.prepareStatement(
-            "insert or ignore into item (registry_name, display_name, nbt, icon) values (?, ?, ?, ?)");
+                "insert or ignore into item (registry_name, display_name, nbt, icon) values (?, ?, ?, ?)");
     }
 
     @SneakyThrows
@@ -47,14 +43,13 @@ public class ItemService {
             displayName = new ItemStack(itemStack.getItem(), 1, 0).getDisplayName() + " (wildcard)";
         }
         val item = Item.builder()
-            .registryName(registryName)
-            .displayName(displayName)
-            .nbt(nbt)
-            .build();
-        if (cache.contains(item)) {
+                .registryName(registryName)
+                .displayName(displayName)
+                .nbt(nbt)
+                .build();
+        if (putInCache(item)) {
             return item;
         }
-        cache.add(item);
         byte[] icon;
         if (Config.exportIcons()) {
             RenderState.queueRender(RenderQuery.of(itemStack));

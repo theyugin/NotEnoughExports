@@ -3,14 +3,14 @@ package com.theyugin.nee.render;
 import codechicken.nei.util.NBTJson;
 import com.google.gson.JsonElement;
 import com.theyugin.nee.util.StackUtils;
+import java.util.Objects;
 import lombok.val;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
-
-import java.util.Objects;
+import thaumcraft.api.aspects.Aspect;
 
 public class RenderQuery {
     private final RenderType renderType;
@@ -38,6 +38,10 @@ public class RenderQuery {
         return new RenderQuery(RenderType.FLUID, registryName, 0, nbt);
     }
 
+    public static RenderQuery of(Aspect aspect) {
+        return new RenderQuery(RenderType.ASPECT, aspect.getTag(), 0, null);
+    }
+
     public FluidStack getFluidStack() {
         if (renderType == RenderType.FLUID) {
             val fluidStack = new FluidStack(FluidRegistry.getFluid(registryName), 0);
@@ -60,6 +64,13 @@ public class RenderQuery {
         return null;
     }
 
+    public Aspect getAspect() {
+        if (renderType == RenderType.ASPECT) {
+            return Aspect.getAspect(registryName);
+        }
+        return null;
+    }
+
     public RenderType renderType() {
         return renderType;
     }
@@ -69,7 +80,10 @@ public class RenderQuery {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         RenderQuery that = (RenderQuery) o;
-        return renderType == that.renderType && registryName.equals(that.registryName) && metadata.equals(that.metadata) && Objects.equals(nbt, that.nbt);
+        return renderType == that.renderType
+                && registryName.equals(that.registryName)
+                && metadata.equals(that.metadata)
+                && Objects.equals(nbt, that.nbt);
     }
 
     @Override
