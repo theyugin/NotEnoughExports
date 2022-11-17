@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import lombok.val;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
+import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
 
@@ -17,8 +18,9 @@ public class NEEUtils {
         val config = new SQLiteConfig();
         config.setSynchronous(SQLiteConfig.SynchronousMode.NORMAL);
         config.setTempStore(SQLiteConfig.TempStore.MEMORY);
+        config.setJournalMode(SQLiteConfig.JournalMode.WAL);
         val ds = new SQLiteDataSource(config);
         ds.setUrl("jdbc:sqlite:nee.sqlite3");
-        return ds.getConnection();
+        return ProxyDataSourceBuilder.create(ds).countQuery().build().getConnection();
     }
 }

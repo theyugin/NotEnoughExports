@@ -5,13 +5,10 @@ import com.theyugin.nee.Config;
 import com.theyugin.nee.persistence.thaumcraft.Aspect;
 import com.theyugin.nee.render.RenderQuery;
 import com.theyugin.nee.render.RenderState;
-import lombok.SneakyThrows;
-import lombok.val;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.util.HashSet;
-import java.util.Set;
+import lombok.SneakyThrows;
+import lombok.val;
 
 public class AspectService extends AbstractCacheableService<Aspect> {
     private final PreparedStatement aspectInsertStatement;
@@ -19,7 +16,8 @@ public class AspectService extends AbstractCacheableService<Aspect> {
     @Inject
     @SneakyThrows
     public AspectService(Connection conn) {
-        this.aspectInsertStatement = conn.prepareStatement("insert or ignore into aspect (tag, name, icon) values (?, ?, ?)");
+        this.aspectInsertStatement =
+                conn.prepareStatement("insert or ignore into aspect (tag, name, icon) values (?, ?, ?)");
     }
 
     @SneakyThrows

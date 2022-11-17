@@ -5,6 +5,7 @@ dependencies {
     shadeCompile("com.google.inject:guice:4.0") { transitive = false }
     shadeCompile("aopalliance:aopalliance:1.0")
     shadeCompile("javax.inject:javax.inject:1")
+    shadeCompile("net.ttddyy:datasource-proxy:1.8.1")
 
     compileOnly("org.projectlombok:lombok:1.18.24")
     annotationProcessor("org.projectlombok:lombok:1.18.24")
@@ -12,7 +13,7 @@ dependencies {
     compile("com.github.GTNewHorizons:NotEnoughItems:2.3.12-GTNH")
 
     compileOnly("net.industrial-craft:industrialcraft-2:2.2.828-experimental:dev")
-    compile("thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev")
+    compileOnly("thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev")
     compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.41.74:dev")
     compileOnly("com.github.GTNewHorizons:ForestryMC:4.5.1:dev")
     compileOnly("com.github.GTNewHorizons:GTplusplus:1.7.117:dev")

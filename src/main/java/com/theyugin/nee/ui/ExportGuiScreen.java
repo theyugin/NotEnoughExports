@@ -11,9 +11,6 @@ import lombok.var;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraftforge.event.world.ChunkEvent;
-import thaumcraft.api.aspects.Aspect;
-import thaumcraft.client.lib.UtilsFX;
 
 public class ExportGuiScreen extends GuiScreen {
     private static GuiButton exportButton;
@@ -40,8 +37,7 @@ public class ExportGuiScreen extends GuiScreen {
                     new ExportGuiOption("export gregtech", Config::toggleExportGregtech, Config::exportGregtech));
         if (LoadedMods.THAUMCRAFT.isLoaded())
             optionList.addOption(
-                new ExportGuiOption("export thaumcraft", Config::toggleExportThaumcraft, Config::exportThaumcraft)
-            );
+                    new ExportGuiOption("export thaumcraft", Config::toggleExportThaumcraft, Config::exportThaumcraft));
         scrollingList = optionList;
         exportButton = new GuiButton(1, 10, height - 50, exportLabel());
         this.buttonList.add(exportButton);

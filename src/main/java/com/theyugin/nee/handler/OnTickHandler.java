@@ -16,7 +16,7 @@ public class OnTickHandler {
                 && !RenderState.isRenderQueueEmpty()
                 && (event.phase == TickEvent.Phase.END)) {
             StackRenderer.initialize();
-            for (int i = 0; i < 512; i++) {
+            for (int i = 0; i < 1024; i++) {
                 RenderState.render();
             }
             StackRenderer.uninitialize();

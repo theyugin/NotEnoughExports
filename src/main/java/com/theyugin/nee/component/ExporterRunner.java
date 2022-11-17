@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
 import lombok.val;
 import net.minecraft.util.EnumChatFormatting;
+import net.ttddyy.dsproxy.QueryCountHolder;
 
 public class ExporterRunner {
     public static Thread exporterThread = null;
@@ -29,11 +30,18 @@ public class ExporterRunner {
         isRunning = true;
         val start = System.nanoTime();
         startRunning();
+        conn.setAutoCommit(false);
         try {
             for (IExporter exporter : loadedExporters) {
                 exporter.run();
             }
         } finally {
+            conn.commit();
+            NotEnoughExports.info(String.format(
+                    "Executed %d queries in %d ms",
+                    QueryCountHolder.getGrandTotal().getTotal(),
+                    QueryCountHolder.getGrandTotal().getTime()));
+            QueryCountHolder.clear();
             stopRunning();
             val total = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
             NEEUtils.sendPlayerMessage(
@@ -73,12 +81,12 @@ public class ExporterRunner {
     private static Connection conn;
 
     private static void initDb() {
-        val db = new File("nee.sqlite3");
-        if (db.exists()) {
-            db.delete();
-        }
         try (val conn = NEEUtils.createConnection();
                 val is = Thread.currentThread().getContextClassLoader().getResourceAsStream("def.sql")) {
+            conn.createStatement().execute("pragma writable_schema = 1");
+            conn.createStatement().execute("delete from sqlite_master where type in ('table', 'index', 'trigger')");
+            conn.createStatement().execute("pragma writable_schema = 0");
+            conn.createStatement().execute("vacuum");
             val statementBuffer = new StringBuilder();
             val bufferedReader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
             String line;

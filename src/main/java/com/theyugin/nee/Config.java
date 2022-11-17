@@ -35,8 +35,7 @@ public class Config {
             exportGregtechProperty = configuration.get(
                     Categories.general, "exportGregtech", Defaults.exportGregtech, "export gregtech recipes");
             exportThaumcraftProperty = configuration.get(
-                Categories.general, "exportThaumcraft", Defaults.exportThaumcraft, "export thaumcraft recipes"
-            );
+                    Categories.general, "exportThaumcraft", Defaults.exportThaumcraft, "export thaumcraft recipes");
         }
     }
 
@@ -93,6 +92,7 @@ public class Config {
         Properties.exportGregtechProperty.set(exportGregtech);
         saveConfiguration();
     }
+
     public static void toggleExportThaumcraft() {
         exportThaumcraft = !exportThaumcraft;
         Properties.exportThaumcraftProperty.set(exportThaumcraft);
