@@ -3,8 +3,7 @@ package com.theyugin.nee.component.service;
 import com.google.inject.Inject;
 import com.theyugin.nee.Config;
 import com.theyugin.nee.persistence.thaumcraft.Aspect;
-import com.theyugin.nee.render.RenderQuery;
-import com.theyugin.nee.render.RenderState;
+import com.theyugin.nee.render.StackRenderer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import lombok.SneakyThrows;
@@ -30,8 +29,9 @@ public class AspectService extends AbstractCacheableService<Aspect> {
         }
         byte[] icon;
         if (Config.exportIcons()) {
-            RenderState.queueRender(RenderQuery.of(aspect));
-            icon = RenderState.getAspectRenderResult();
+            icon = StackRenderer.renderIcon(aspect);
+            //            RenderState.queueRender(RenderQuery.of(aspect));
+            //            icon = RenderState.getAspectRenderResult();
         } else {
             icon = null;
         }

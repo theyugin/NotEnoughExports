@@ -6,15 +6,8 @@ import com.theyugin.nee.component.service.CatalystService;
 import com.theyugin.nee.component.service.ItemService;
 import lombok.val;
 
-public class CatalystExporter implements IExporter {
-    private int progress = 0;
-    private int total = 0;
-    private boolean running = true;
-
-    @Override
-    public int progress() {
-        return progress;
-    }
+public class CatalystExporter extends AbstractExporter {
+    private final int total;
 
     @Override
     public int total() {
@@ -26,11 +19,6 @@ public class CatalystExporter implements IExporter {
         return "catalysts";
     }
 
-    @Override
-    public boolean running() {
-        return running;
-    }
-
     private final CatalystService catalystService;
     private final ItemService itemService;
 
@@ -38,13 +26,15 @@ public class CatalystExporter implements IExporter {
     public CatalystExporter(CatalystService catalystService, ItemService itemService) {
         this.catalystService = catalystService;
         this.itemService = itemService;
+        total = RecipeCatalysts.getPositionedRecipeCatalystMap().size();
     }
 
     @Override
     public void run() {
         val catalystMap = RecipeCatalysts.getPositionedRecipeCatalystMap();
-        total = catalystMap.size();
         for (val stringListEntry : catalystMap.entrySet()) {
+            progress++;
+            logProgress();
             val catalyst = catalystService.getOrCreate(stringListEntry.getKey());
 
             for (val positionedStack : stringListEntry.getValue()) {
@@ -52,8 +42,6 @@ public class CatalystExporter implements IExporter {
                     catalystService.addItem(catalyst, itemService.processItemStack(itemStack));
                 }
             }
-            progress++;
         }
-        running = false;
     }
 }

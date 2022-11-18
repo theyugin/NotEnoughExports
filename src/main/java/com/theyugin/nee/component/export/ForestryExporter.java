@@ -3,12 +3,22 @@ package com.theyugin.nee.component.export;
 import forestry.api.recipes.*;
 import java.sql.Connection;
 
-public class ForestryExporter implements IExporter {
-    private int progress = 0;
-    private int total = 0;
-    private boolean running = true;
+public class ForestryExporter extends AbstractExporter {
+    private final int total;
 
-    public ForestryExporter(Connection conn) {}
+    @Override
+    public int total() {
+        return total;
+    }
+
+    @Override
+    public String name() {
+        return "Forestry stuff";
+    }
+
+    public ForestryExporter(Connection conn) {
+        total = calculateTotal();
+    }
 
     private int calculateTotal() {
         return RecipeManagers.carpenterManager.recipes().size()
@@ -21,8 +31,8 @@ public class ForestryExporter implements IExporter {
                 + RecipeManagers.fabricatorSmeltingManager.recipes().size();
     }
 
+    @Override
     public void run() {
-        total = calculateTotal();
         for (ICarpenterRecipe recipe : RecipeManagers.carpenterManager.recipes()) {
             IDescriptiveRecipe craftingGridRecipe = recipe.getCraftingGridRecipe();
             craftingGridRecipe.getIngredients();
@@ -73,21 +83,5 @@ public class ForestryExporter implements IExporter {
             recipe.getProduct();
             recipe.getMeltingPoint();
         }
-    }
-
-    public int progress() {
-        return progress;
-    }
-
-    public int total() {
-        return total;
-    }
-
-    public String name() {
-        return "Forestry stuff";
-    }
-
-    public boolean running() {
-        return running;
     }
 }

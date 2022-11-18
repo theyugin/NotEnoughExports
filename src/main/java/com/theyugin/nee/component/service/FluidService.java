@@ -4,8 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.theyugin.nee.Config;
 import com.theyugin.nee.persistence.general.Fluid;
-import com.theyugin.nee.render.RenderQuery;
-import com.theyugin.nee.render.RenderState;
+import com.theyugin.nee.render.StackRenderer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import lombok.NonNull;
@@ -39,8 +38,9 @@ public class FluidService extends AbstractCacheableService<Fluid> {
         }
         byte[] icon;
         if (Config.exportIcons()) {
-            RenderState.queueRender(RenderQuery.of(fluidStack));
-            icon = RenderState.getFluidRenderResult();
+            icon = StackRenderer.renderIcon(fluidStack);
+            //            RenderState.queueRender(RenderQuery.of(fluidStack));
+            //            icon = RenderState.getFluidRenderResult();
         } else {
             icon = null;
         }

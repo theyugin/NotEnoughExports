@@ -11,15 +11,10 @@ import gregtech.api.util.GT_Recipe;
 import java.util.*;
 import lombok.val;
 
-public class GregTechExporter implements IExporter {
-    private boolean running = true;
-    private int progress = 0;
-    private int total = 0;
+public class GregTechExporter extends AbstractExporter {
+    private final int total;
 
-    public int progress() {
-        return progress;
-    }
-
+    @Override
     public int total() {
         return total;
     }
@@ -27,10 +22,6 @@ public class GregTechExporter implements IExporter {
     @Override
     public String name() {
         return "GregTech recipes";
-    }
-
-    public boolean running() {
-        return running;
     }
 
     private final GregtechRecipeService gregtechRecipeService;
@@ -44,26 +35,28 @@ public class GregTechExporter implements IExporter {
             ItemService itemService,
             FluidService fluidService,
             CatalystService catalystService) {
+        total = countTotalRecipes();
         this.gregtechRecipeService = gregtechRecipeService;
         this.itemService = itemService;
         this.fluidService = fluidService;
         this.catalystService = catalystService;
     }
 
-    private int countTotalRecipes(Collection<GT_Recipe.GT_Recipe_Map> gtRecipeMaps) {
+    private int countTotalRecipes() {
         int acc = 0;
-        for (val gtRecipeMap : gtRecipeMaps) {
+        for (val gtRecipeMap : GT_Recipe.GT_Recipe_Map.sMappings) {
             acc += gtRecipeMap.mRecipeList.size();
         }
         return acc;
     }
 
+    @Override
     public void run() {
         val gtRecipeMaps = GT_Recipe.GT_Recipe_Map.sMappings;
-        total = countTotalRecipes(gtRecipeMaps);
         for (val gtRecipeMap : gtRecipeMaps) {
             for (val gtRecipe : gtRecipeMap.mRecipeList) {
                 progress++;
+                logProgress();
                 if (!gtRecipe.mFakeRecipe && gtRecipe.mEnabled) {
                     GregtechRecipe recipe;
                     if (gtRecipeMap instanceof GT_Recipe.GT_Recipe_Map_Fuel) {
@@ -131,6 +124,5 @@ public class GregTechExporter implements IExporter {
                 }
             }
         }
-        running = false;
     }
 }

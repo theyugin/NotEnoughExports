@@ -49,7 +49,11 @@ public class StackUtils {
     }
 
     public static boolean isNotWildcard(ItemStack itemStack) {
-        return itemStack.getItemDamage() != OreDictionary.WILDCARD_VALUE;
+        return !isWildcard(itemStack);
+    }
+
+    public static boolean isWildcard(ItemStack itemStack) {
+        return itemStack.getItemDamage() == OreDictionary.WILDCARD_VALUE;
     }
 
     public static boolean isGtConfigCircuit(ItemStack i) {

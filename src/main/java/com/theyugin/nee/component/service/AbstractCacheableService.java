@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public abstract class AbstractCacheableService<T> {
-    protected Set<T> cache = new HashSet<>();
+    protected final Set<T> cache = new HashSet<>();
 
     /**
      *

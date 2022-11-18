@@ -22,23 +22,15 @@ import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
 
-public class CraftingTableExporter implements IExporter {
-    private boolean running = true;
-    private int progress = 0;
-    private int total = 0;
+public class CraftingTableExporter extends AbstractExporter {
+    private final int total;
 
-    public int progress() {
-        return progress;
-    }
-
+    @Override
     public int total() {
         return total;
     }
 
-    public boolean running() {
-        return running;
-    }
-
+    @Override
     public String name() {
         return "crafting table recipes";
     }
@@ -50,6 +42,7 @@ public class CraftingTableExporter implements IExporter {
     @Inject
     public CraftingTableExporter(
             ItemService itemService, OreService oreService, CraftingRecipeService craftingRecipeService) {
+        total = CraftingManager.getInstance().getRecipeList().size();
         this.itemService = itemService;
         this.oreService = oreService;
         this.craftingRecipeService = craftingRecipeService;
@@ -110,7 +103,7 @@ public class CraftingTableExporter implements IExporter {
             try {
                 processInput(recipe, slot, ((appeng.api.recipes.IIngredient) oInput).getItemStackSet());
             } catch (Exception ex) {
-                // useless exceptions from appeng
+                // useless exceptions from AE
             }
 
         } else if (oInput != null && oInput.getClass().isArray()) {
@@ -165,13 +158,13 @@ public class CraftingTableExporter implements IExporter {
         return null;
     }
 
+    @Override
     public void run() {
         val unhandledRecipes = new HashSet<String>();
         val recipeList = CraftingManager.getInstance().getRecipeList();
-        total = recipeList.size();
-        progress = 0;
         for (val oRecipe : recipeList) {
             progress++;
+            logProgress();
             if (oRecipe instanceof IRecipe
                     && ((IRecipe) oRecipe).getRecipeOutput() != null
                     && ((IRecipe) oRecipe).getRecipeOutput().getItem() != null) {
@@ -196,6 +189,5 @@ public class CraftingTableExporter implements IExporter {
         if (unhandledRecipes.size() > 0) {
             NotEnoughExports.warn("Unhandled recipe types: " + unhandledRecipes);
         }
-        running = false;
     }
 }

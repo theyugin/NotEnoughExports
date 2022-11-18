@@ -1,4 +1,4 @@
-//version: 1666827308
+//version: 1668274302
 /*
  DO NOT CHANGE THIS FILE!
  Also, you may replace this file at any time if there is an update available.
@@ -45,7 +45,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2.9'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2.11'
     }
 }
 plugins {
@@ -341,7 +341,7 @@ dependencies {
         annotationProcessor('org.spongepowered:mixin:0.8.5-GTNH:processor')
     }
     if (usesMixins.toBoolean() || forceEnableMixins.toBoolean()) {
-        compile('com.gtnewhorizon:gtnhmixins:2.0.1')
+        compile('com.gtnewhorizon:gtnhmixins:2.0.2')
     }
 }
 

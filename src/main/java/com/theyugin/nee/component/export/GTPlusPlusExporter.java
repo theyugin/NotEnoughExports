@@ -4,23 +4,8 @@ import gregtech.api.util.GTPP_Recipe;
 import gregtech.api.util.GT_Recipe;
 import lombok.val;
 
-public class GTPlusPlusExporter implements IExporter {
-    private int progress = 0;
-    private int total = 0;
-    private boolean running = false;
-
-    @Override
-    public void run() {
-        for (val sMappingsEx : GTPP_Recipe.GTPP_Recipe_Map_Internal.sMappingsEx) {
-            val mappingName = sMappingsEx.mUnlocalizedName;
-            for (GT_Recipe gt_recipe : sMappingsEx.mRecipeList) {}
-        }
-    }
-
-    @Override
-    public int progress() {
-        return progress;
-    }
+public class GTPlusPlusExporter extends AbstractExporter {
+    private final int total;
 
     @Override
     public int total() {
@@ -32,8 +17,15 @@ public class GTPlusPlusExporter implements IExporter {
         return "GTPlusPlus recipes";
     }
 
+    public GTPlusPlusExporter() {
+        total = GTPP_Recipe.GTPP_Recipe_Map_Internal.sMappingsEx.size();
+    }
+
     @Override
-    public boolean running() {
-        return running;
+    public void run() {
+        for (val sMappingsEx : GTPP_Recipe.GTPP_Recipe_Map_Internal.sMappingsEx) {
+            val mappingName = sMappingsEx.mUnlocalizedName;
+            for (GT_Recipe gt_recipe : sMappingsEx.mRecipeList) {}
+        }
     }
 }

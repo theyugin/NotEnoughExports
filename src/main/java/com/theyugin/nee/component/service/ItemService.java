@@ -5,8 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.theyugin.nee.Config;
 import com.theyugin.nee.persistence.general.Item;
-import com.theyugin.nee.render.RenderQuery;
-import com.theyugin.nee.render.RenderState;
+import com.theyugin.nee.render.StackRenderer;
 import com.theyugin.nee.util.StackUtils;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -50,8 +49,13 @@ public class ItemService extends AbstractCacheableService<Item> {
         }
         byte[] icon;
         if (Config.exportIcons()) {
-            RenderState.queueRender(RenderQuery.of(itemStack));
-            icon = RenderState.getItemRenderResult();
+            val renderIS = itemStack.copy();
+            if (StackUtils.isWildcard(renderIS)) {
+                renderIS.itemDamage = 0;
+            }
+            icon = StackRenderer.renderIcon(renderIS);
+            //            RenderState.queueRender(RenderQuery.of(itemStack));
+            //            icon = RenderState.getItemRenderResult();
         } else {
             icon = null;
         }

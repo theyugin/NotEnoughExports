@@ -1,7 +1,6 @@
 package com.theyugin.nee.component;
 
-import static com.theyugin.nee.LoadedMods.GREGTECH;
-import static com.theyugin.nee.LoadedMods.THAUMCRAFT;
+import static com.theyugin.nee.LoadedMods.*;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -9,6 +8,7 @@ import com.theyugin.nee.Config;
 import com.theyugin.nee.NotEnoughExports;
 import com.theyugin.nee.component.export.*;
 import com.theyugin.nee.component.service.ServiceModule;
+import com.theyugin.nee.render.StackRenderer;
 import com.theyugin.nee.util.NEEUtils;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -23,16 +23,16 @@ import net.minecraft.util.EnumChatFormatting;
 import net.ttddyy.dsproxy.QueryCountHolder;
 
 public class ExporterRunner {
-    public static Thread exporterThread = null;
+    public List<AbstractExporter> loadedExporters = new ArrayList<>();
+    private Injector injector;
+    private Connection conn;
 
     @SneakyThrows
-    private static void runExport() {
-        isRunning = true;
+    private void runExport() {
         val start = System.nanoTime();
-        startRunning();
         conn.setAutoCommit(false);
         try {
-            for (IExporter exporter : loadedExporters) {
+            for (AbstractExporter exporter : loadedExporters) {
                 exporter.run();
             }
         } finally {
@@ -42,15 +42,12 @@ public class ExporterRunner {
                     QueryCountHolder.getGrandTotal().getTotal(),
                     QueryCountHolder.getGrandTotal().getTime()));
             QueryCountHolder.clear();
-            stopRunning();
             val total = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
             NEEUtils.sendPlayerMessage(
                     EnumChatFormatting.GREEN + String.format("Successfully exported in %d seconds!", total));
             loadedExporters = new ArrayList<>();
-            exporterThread = null;
             injector.getInstance(Connection.class).close();
             injector = null;
-            isRunning = false;
             if (conn != null && !conn.isClosed()) {
                 conn.close();
             }
@@ -58,29 +55,7 @@ public class ExporterRunner {
         }
     }
 
-    public static boolean exporting() {
-        return exporterThread != null && exporterThread.isAlive();
-    }
-
-    public static List<IExporter> loadedExporters = new ArrayList<>();
-    private static boolean isRunning = false;
-
-    public static synchronized void startRunning() {
-        isRunning = true;
-    }
-
-    public static synchronized void stopRunning() {
-        isRunning = false;
-    }
-
-    public static synchronized boolean isRunning() {
-        return isRunning;
-    }
-
-    private static Injector injector;
-    private static Connection conn;
-
-    private static void initDb() {
+    private void initDb() {
         try (val conn = NEEUtils.createConnection();
                 val is = Thread.currentThread().getContextClassLoader().getResourceAsStream("def.sql")) {
             conn.createStatement().execute("pragma writable_schema = 1");
@@ -88,6 +63,7 @@ public class ExporterRunner {
             conn.createStatement().execute("pragma writable_schema = 0");
             conn.createStatement().execute("vacuum");
             val statementBuffer = new StringBuilder();
+            assert is != null;
             val bufferedReader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
             String line;
             while ((line = bufferedReader.readLine()) != null) {
@@ -106,8 +82,9 @@ public class ExporterRunner {
         }
     }
 
-    public static void run() {
+    public void run() {
         initDb();
+        StackRenderer.initialize();
         injector = Guice.createInjector(new ComponentModule(), new ServiceModule(), new ExportModule());
         if (Config.exportCatalysts()) loadedExporters.add(injector.getInstance(CatalystExporter.class));
         if (Config.exportCraftingTable()) loadedExporters.add(injector.getInstance(CraftingTableExporter.class));
@@ -116,7 +93,7 @@ public class ExporterRunner {
         if (Config.exportThaumcraft() && THAUMCRAFT.isLoaded())
             loadedExporters.add(injector.getInstance(ThaumcraftExporter.class));
         conn = injector.getInstance(Connection.class);
-        exporterThread = new Thread(ExporterRunner::runExport);
-        exporterThread.start();
+        runExport();
+        StackRenderer.uninitialize();
     }
 }

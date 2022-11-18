@@ -10,16 +10,9 @@ import thaumcraft.api.ThaumcraftApiHelper;
 import thaumcraft.api.aspects.Aspect;
 import thaumcraft.api.crafting.*;
 
-public class ThaumcraftExporter implements IExporter {
-    private static int progress = 0;
-    private static int total = 0;
-    private static boolean running = false;
+public class ThaumcraftExporter extends AbstractExporter {
+    private final int total;
     private final AspectService aspectService;
-
-    @Override
-    public int progress() {
-        return progress;
-    }
 
     @Override
     public int total() {
@@ -32,11 +25,6 @@ public class ThaumcraftExporter implements IExporter {
     }
 
     @Override
-    public boolean running() {
-        return running;
-    }
-
-    @Override
     public void run() {
         val recipeTypes = new HashSet<String>();
         ThaumcraftApiHelper.getAllAspects(10);
@@ -45,6 +33,8 @@ public class ThaumcraftExporter implements IExporter {
         }
 
         for (Object recipe : ThaumcraftApi.getCraftingRecipes()) {
+            progress++;
+            logProgress();
             if (recipe instanceof InfusionRecipe) {
                 val infusionRecipe = (InfusionRecipe) recipe;
             } else if (recipe instanceof InfusionEnchantmentRecipe) {
@@ -71,5 +61,6 @@ public class ThaumcraftExporter implements IExporter {
     @Inject
     public ThaumcraftExporter(AspectService aspectService) {
         this.aspectService = aspectService;
+        total = ThaumcraftApi.getCraftingRecipes().size();
     }
 }

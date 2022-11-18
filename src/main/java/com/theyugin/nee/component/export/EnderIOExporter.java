@@ -6,29 +6,17 @@ import crazypants.enderio.machine.recipe.OreDictionaryRecipeInput;
 import crazypants.enderio.machine.vat.VatRecipeManager;
 import lombok.val;
 
-public class EnderIOExporter implements IExporter {
-    private int progress = 0;
-    private int total = 0;
-    private boolean running = false;
-
-    @Override
-    public int progress() {
-        return 0;
-    }
+public class EnderIOExporter extends AbstractExporter {
 
     @Override
     public int total() {
-        return 0;
+        int total = 0;
+        return total;
     }
 
     @Override
     public String name() {
         return "EnderIO recipes";
-    }
-
-    @Override
-    public boolean running() {
-        return running;
     }
 
     private void processRecipe(IRecipe recipe, String type) {
