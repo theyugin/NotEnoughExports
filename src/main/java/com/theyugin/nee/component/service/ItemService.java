@@ -31,7 +31,7 @@ public class ItemService extends AbstractCacheableService<Item> {
         int metadata = itemStack.getItemDamage();
         String registryName;
         String displayName;
-        val nbt = itemStack.hasTagCompound() ? NBTJson.toJson(itemStack.stackTagCompound) : null;
+        val nbt = itemStack.hasTagCompound() ? NBTJson.toJson(itemStack.stackTagCompound) : "{}";
         if (StackUtils.isNotWildcard(itemStack)) {
             registryName = String.format("%s:%d", itemRegistryName, metadata);
             displayName = itemStack.getDisplayName();
@@ -54,8 +54,6 @@ public class ItemService extends AbstractCacheableService<Item> {
                 renderIS.itemDamage = 0;
             }
             icon = StackRenderer.renderIcon(renderIS);
-            //            RenderState.queueRender(RenderQuery.of(itemStack));
-            //            icon = RenderState.getItemRenderResult();
         } else {
             icon = null;
         }

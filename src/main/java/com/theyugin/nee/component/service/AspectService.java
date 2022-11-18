@@ -30,8 +30,6 @@ public class AspectService extends AbstractCacheableService<Aspect> {
         byte[] icon;
         if (Config.exportIcons()) {
             icon = StackRenderer.renderIcon(aspect);
-            //            RenderState.queueRender(RenderQuery.of(aspect));
-            //            icon = RenderState.getAspectRenderResult();
         } else {
             icon = null;
         }

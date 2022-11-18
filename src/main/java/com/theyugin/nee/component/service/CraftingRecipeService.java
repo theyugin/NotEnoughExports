@@ -13,44 +13,30 @@ import lombok.val;
 
 @Singleton
 public class CraftingRecipeService {
-    private final PreparedStatement insertShapedStmt;
-    private final PreparedStatement insertShapelessStmt;
-    private final PreparedStatement insertShapedInputItemStmt;
-    private final PreparedStatement insertShapedInputOreStmt;
-    private final PreparedStatement insertShapelessInputItemStmt;
-    private final PreparedStatement insertShapelessInputOreStmt;
+    private final PreparedStatement insertRecipeStmt;
+    private final PreparedStatement insertRecipeInputItemStmt;
+    private final PreparedStatement InsertRecipeInputOreStmt;
 
     @Inject
     @SneakyThrows
     public CraftingRecipeService(@NonNull Connection conn) {
-        insertShapedStmt =
-                conn.prepareStatement("insert or ignore into shaped_recipe (output_item_registry_name) values (?)");
-        insertShapelessStmt =
-                conn.prepareStatement("insert or ignore into shapeless_recipe (output_item_registry_name) values (?)");
-        insertShapedInputItemStmt = conn.prepareStatement(
-                "insert or ignore into shaped_recipe_input_item (item_registry_name, shaped_recipe_id, slot) values (?, ?, ?)");
-        insertShapedInputOreStmt = conn.prepareStatement(
-                "insert or ignore into shaped_recipe_input_ore (ore_name, shaped_recipe_id, slot) values (?, ?, ?)");
-        insertShapelessInputItemStmt = conn.prepareStatement(
-                "insert or ignore into shapeless_recipe_input_item (item_registry_name, shapeless_recipe_id, slot) values (?, ?, ?)");
-        insertShapelessInputOreStmt = conn.prepareStatement(
-                "insert or ignore into shapeless_recipe_input_ore (ore_name, shapeless_recipe_id, slot) values (?, ?, ?)");
+        insertRecipeStmt = conn.prepareStatement(
+                "insert or ignore into crafting_table_recipe (output_item_registry_name, output_item_nbt, shaped) values (?, ?, ?)");
+        insertRecipeInputItemStmt = conn.prepareStatement(
+                "insert or ignore into crafting_table_recipe_input_item (item_registry_name, item_nbt, crafting_table_recipe_id, slot) values (?, ?, ?, ?)");
+        InsertRecipeInputOreStmt = conn.prepareStatement(
+                "insert or ignore into crafting_table_recipe_input_ore (ore_name, crafting_table_recipe_id, slot) values (?, ?, ?)");
     }
 
     @SneakyThrows
-    public ICraftingTableRecipe createRecipe(Item output, boolean shaped) {
-        ICraftingTableRecipe recipe;
-        PreparedStatement stmt;
-        if (shaped) {
-            stmt = insertShapedStmt;
-            recipe = ShapedRecipe.builder().outputItem(output).build();
-        } else {
-            stmt = insertShapelessStmt;
-            recipe = ShapelessRecipe.builder().outputItem(output).build();
-        }
-        stmt.setString(1, output.getRegistryName());
-        stmt.executeUpdate();
-        val rs = stmt.getGeneratedKeys();
+    public CraftingTableRecipe createRecipe(Item output, boolean shaped) {
+        val recipe =
+                CraftingTableRecipe.builder().outputItem(output).shaped(shaped).build();
+        insertRecipeStmt.setString(1, output.getRegistryName());
+        insertRecipeStmt.setString(2, output.getNbt());
+        insertRecipeStmt.setBoolean(3, shaped);
+        insertRecipeStmt.executeUpdate();
+        val rs = insertRecipeStmt.getGeneratedKeys();
         while (rs.next()) {
             recipe.setId(rs.getInt(1));
         }
@@ -58,30 +44,19 @@ public class CraftingRecipeService {
     }
 
     @SneakyThrows
-    public void addRecipeInput(ICraftingTableRecipe recipe, Item input, int slot) {
-        PreparedStatement stmt;
-        if (recipe instanceof ShapedRecipe) {
-            stmt = insertShapedInputItemStmt;
-        } else {
-            stmt = insertShapelessInputItemStmt;
-        }
-        stmt.setString(1, input.getRegistryName());
-        stmt.setInt(2, recipe.getId());
-        stmt.setInt(3, slot);
-        stmt.executeUpdate();
+    public void addRecipeInput(CraftingTableRecipe recipe, Item input, int slot) {
+        insertRecipeInputItemStmt.setString(1, input.getRegistryName());
+        insertRecipeInputItemStmt.setString(2, input.getNbt());
+        insertRecipeInputItemStmt.setInt(3, recipe.getId());
+        insertRecipeInputItemStmt.setInt(4, slot);
+        insertRecipeInputItemStmt.executeUpdate();
     }
 
     @SneakyThrows
-    public void addRecipeInput(ICraftingTableRecipe recipe, Ore input, int slot) {
-        PreparedStatement stmt;
-        if (recipe instanceof ShapedRecipe) {
-            stmt = insertShapedInputOreStmt;
-        } else {
-            stmt = insertShapelessInputOreStmt;
-        }
-        stmt.setString(1, input.getName());
-        stmt.setInt(2, recipe.getId());
-        stmt.setInt(3, slot);
-        stmt.executeUpdate();
+    public void addRecipeInput(CraftingTableRecipe recipe, Ore input, int slot) {
+        InsertRecipeInputOreStmt.setString(1, input.getName());
+        InsertRecipeInputOreStmt.setInt(2, recipe.getId());
+        InsertRecipeInputOreStmt.setInt(3, slot);
+        InsertRecipeInputOreStmt.executeUpdate();
     }
 }

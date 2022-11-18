@@ -20,7 +20,7 @@ public class CatalystService extends AbstractCacheableService<Catalyst> {
     public CatalystService(@NonNull Connection conn) {
         catalystStmt = conn.prepareStatement("insert or ignore into catalyst (name) values (?)");
         catalystItemStmt = conn.prepareStatement(
-                "insert or ignore into catalyst_item (catalyst_name, item_registry_name) values (?, ?)");
+                "insert or ignore into catalyst_item (catalyst_name, item_registry_name, item_nbt) values (?, ?, ?)");
     }
 
     @SneakyThrows
@@ -38,6 +38,7 @@ public class CatalystService extends AbstractCacheableService<Catalyst> {
     public void addItem(Catalyst catalyst, Item item) {
         catalystItemStmt.setString(1, catalyst.getName());
         catalystItemStmt.setString(2, item.getRegistryName());
+        catalystItemStmt.setString(3, item.getNbt());
         catalystItemStmt.executeUpdate();
     }
 }

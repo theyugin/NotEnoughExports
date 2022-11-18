@@ -5,7 +5,8 @@ import lombok.*;
 
 @Data
 @Builder
-public class ShapedRecipe implements ICraftingTableRecipe {
+public class CraftingTableRecipe {
     private int id;
+    private boolean shaped;
     private final Item outputItem;
 }

@@ -1,5 +1,6 @@
 package com.theyugin.nee.component.service;
 
+import codechicken.nei.util.NBTJson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.theyugin.nee.Config;
@@ -28,25 +29,25 @@ public class FluidService extends AbstractCacheableService<Fluid> {
     public Fluid processFluidStack(FluidStack fluidStack) {
         val registryName = FluidRegistry.getDefaultFluidName(fluidStack.getFluid());
         val displayName = fluidStack.getLocalizedName();
+        val nbt = fluidStack.tag != null ? NBTJson.toJson(fluidStack.tag) : "{}";
         val fluid = Fluid.builder()
                 .registryName(registryName)
                 .displayName(displayName)
+                .nbt(nbt)
                 .build();
-        new FluidStack(fluidStack, 1);
         if (putInCache(fluid)) {
             return fluid;
         }
         byte[] icon;
         if (Config.exportIcons()) {
             icon = StackRenderer.renderIcon(fluidStack);
-            //            RenderState.queueRender(RenderQuery.of(fluidStack));
-            //            icon = RenderState.getFluidRenderResult();
         } else {
             icon = null;
         }
         insertStmt.setString(1, registryName);
         insertStmt.setString(2, displayName);
-        insertStmt.setBytes(3, icon);
+        insertStmt.setString(3, nbt);
+        insertStmt.setBytes(4, icon);
         insertStmt.executeUpdate();
         return fluid;
     }

@@ -19,6 +19,7 @@ public class NEEUtils {
         config.setSynchronous(SQLiteConfig.SynchronousMode.NORMAL);
         config.setTempStore(SQLiteConfig.TempStore.MEMORY);
         config.setJournalMode(SQLiteConfig.JournalMode.WAL);
+        config.enforceForeignKeys(true);
         val ds = new SQLiteDataSource(config);
         ds.setUrl("jdbc:sqlite:nee.sqlite3");
         return ProxyDataSourceBuilder.create(ds).countQuery().build().getConnection();

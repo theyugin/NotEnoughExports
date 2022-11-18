@@ -62,8 +62,8 @@ public class GregTechExporter extends AbstractExporter {
                     if (gtRecipeMap instanceof GT_Recipe.GT_Recipe_Map_Fuel) {
                         recipe = gregtechRecipeService.createFuelRecipe(
                                 catalystService.getOrCreate(gtRecipeMap.mUnlocalizedName),
-                                gtRecipeMap.mNEISpecialValueMultiplier,
-                                gtRecipe.mSpecialValue);
+                                gtRecipe.mSpecialValue,
+                                gtRecipeMap.mNEISpecialValueMultiplier);
                     } else {
                         recipe = gregtechRecipeService.createRecipe(
                                 catalystService.getOrCreate(gtRecipeMap.mUnlocalizedName),
