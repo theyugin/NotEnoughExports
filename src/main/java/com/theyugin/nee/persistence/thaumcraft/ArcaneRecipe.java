@@ -6,7 +6,8 @@ import lombok.Data;
 
 @Data
 @Builder
-public class CrucibleRecipe {
+public class ArcaneRecipe {
     private Integer id;
+    private Boolean shaped;
     private Item output;
 }

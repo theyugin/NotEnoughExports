@@ -50,6 +50,7 @@ public class ItemService extends AbstractCacheableService<Item> {
         byte[] icon;
         if (Config.exportIcons()) {
             val renderIS = itemStack.copy();
+            renderIS.stackSize = 1;
             if (StackUtils.isWildcard(renderIS)) {
                 renderIS.itemDamage = 0;
             }

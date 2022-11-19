@@ -6,7 +6,10 @@ import lombok.Data;
 
 @Data
 @Builder
-public class CrucibleRecipe {
+public class InfusionRecipe {
     private Integer id;
+    private String research;
+    private Integer instability;
+    private Item input;
     private Item output;
 }

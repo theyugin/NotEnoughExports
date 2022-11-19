@@ -9,6 +9,7 @@ import com.theyugin.nee.component.service.ItemService;
 import com.theyugin.nee.component.service.OreService;
 import com.theyugin.nee.persistence.vanilla.CraftingTableRecipe;
 import com.theyugin.nee.util.StackUtils;
+import ic2.api.recipe.IRecipeInput;
 import ic2.api.recipe.RecipeInputOreDict;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,34 +49,24 @@ public class CraftingTableExporter extends AbstractExporter {
         this.craftingRecipeService = craftingRecipeService;
     }
 
-    private void assignOreDict(CraftingTableRecipe recipe, List<ItemStack> itemStacks, int slot) {
-        val oreName = StackUtils.getOreDictValue(itemStacks);
-        if (oreName != null) {
-            val ore = oreService.createOrGet(oreName);
-            for (val itemStack : itemStacks) {
-                oreService.addItem(ore, itemService.processItemStack(itemStack));
-            }
-            craftingRecipeService.addRecipeInput(recipe, ore, slot);
-        } else {
-            for (val itemStack : itemStacks) {
-                craftingRecipeService.addRecipeInput(recipe, itemService.processItemStack(itemStack), slot);
-            }
-        }
-    }
-
     @SuppressWarnings("unchecked")
     private void processInput(CraftingTableRecipe recipe, int slot, Object oInput) {
         if (oInput instanceof ItemStack) {
             craftingRecipeService.addRecipeInput(recipe, itemService.processItemStack((ItemStack) oInput), slot);
         } else if (oInput instanceof String) {
-            val ore = oreService.createOrGet((String) oInput);
-            for (val itemStack : StackUtils.getOreItemStacks((String) oInput)) {
-                oreService.addItem(ore, itemService.processItemStack(itemStack));
-            }
+            val ore = oreService.process((String) oInput);
+            assert ore != null;
             craftingRecipeService.addRecipeInput(recipe, ore, slot);
         } else if (oInput instanceof ArrayList<?>) {
             if (((ArrayList<?>) oInput).stream().allMatch(StackUtils::isItemStack)) {
-                assignOreDict(recipe, (List<ItemStack>) oInput, slot);
+                val ore = oreService.process((List<ItemStack>) oInput);
+                if (ore == null) {
+                    for (val stack : (List<ItemStack>) oInput) {
+                        craftingRecipeService.addRecipeInput(recipe, itemService.processItemStack(stack), slot);
+                    }
+                } else {
+                    craftingRecipeService.addRecipeInput(recipe, ore, slot);
+                }
 
             } else if (((ArrayList<?>) oInput).stream().allMatch(StackUtils::isIC2InputItemStack)) {
                 for (val input : (ArrayList<ic2.api.recipe.IRecipeInput>) oInput) {
@@ -95,10 +86,23 @@ public class CraftingTableExporter extends AbstractExporter {
             }
 
         } else if (oInput instanceof ItemStack[]) {
-            assignOreDict(recipe, Arrays.asList((ItemStack[]) oInput), slot);
+            val ore = oreService.process((ItemStack[]) oInput);
+            if (ore == null) {
+                for (val input : (ItemStack[]) oInput) {
+                    craftingRecipeService.addRecipeInput(recipe, itemService.processItemStack(input), slot);
+                }
+            } else {
+                craftingRecipeService.addRecipeInput(recipe, ore, slot);
+            }
         } else if (IC2.isLoaded() && oInput instanceof ic2.api.recipe.IRecipeInput) {
-            assignOreDict(recipe, ((ic2.api.recipe.IRecipeInput) oInput).getInputs(), slot);
-
+            val ore = oreService.process(((IRecipeInput) oInput).getInputs());
+            if (ore == null) {
+                for (val input : ((IRecipeInput) oInput).getInputs()) {
+                    craftingRecipeService.addRecipeInput(recipe, itemService.processItemStack(input), slot);
+                }
+            } else {
+                craftingRecipeService.addRecipeInput(recipe, ore, slot);
+            }
         } else if (AE2.isLoaded() && oInput instanceof appeng.api.recipes.IIngredient) {
             try {
                 processInput(recipe, slot, ((appeng.api.recipes.IIngredient) oInput).getItemStackSet());
