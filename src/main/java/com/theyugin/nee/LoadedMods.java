@@ -8,7 +8,7 @@ public enum LoadedMods {
     AE2("appliedenergistics2"),
     FORESTRY("Forestry"),
     ENDERIO("EnderIO"),
-    GTPLUSLUS("miscutils"),
+    GTPLUSPLUS("miscutils"),
     THAUMCRAFT("Thaumcraft"),
     ;
     private final String modId;

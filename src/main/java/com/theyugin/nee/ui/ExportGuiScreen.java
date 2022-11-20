@@ -1,8 +1,7 @@
 package com.theyugin.nee.ui;
 
-import com.theyugin.nee.Config;
-import com.theyugin.nee.LoadedMods;
-import com.theyugin.nee.component.ExporterRunner;
+import com.theyugin.nee.config.ExportConfigOption;
+import com.theyugin.nee.export.ExporterRunner;
 import com.theyugin.nee.util.NEEUtils;
 import cpw.mods.fml.client.GuiScrollingList;
 import lombok.val;
@@ -22,20 +21,12 @@ public class ExportGuiScreen extends GuiScreen {
     @Override
     public void initGui() {
         int width = 300;
-        val optionList = new ExportGuiOptionList(
-                this,
-                width,
-                (this.width - width) / 2,
-                new ExportGuiOption("export icons", Config::toggleExportIcons, Config::exportIcons),
-                new ExportGuiOption(
-                        "export crafting table", Config::toggleExportCraftingTable, Config::exportCraftingTable),
-                new ExportGuiOption("export catalysts", Config::toggleExportCatalysts, Config::exportCatalysts));
-        if (LoadedMods.GREGTECH.isLoaded())
-            optionList.addOption(
-                    new ExportGuiOption("export gregtech", Config::toggleExportGregtech, Config::exportGregtech));
-        if (LoadedMods.THAUMCRAFT.isLoaded())
-            optionList.addOption(
-                    new ExportGuiOption("export thaumcraft", Config::toggleExportThaumcraft, Config::exportThaumcraft));
+        val optionList = new ExportGuiOptionList(this, width, (this.width - width) / 2);
+        for (val option : ExportConfigOption.values()) {
+            if (option.shown()) {
+                optionList.addOption(new ExportGuiOption(option.description, option::toggle, option::get));
+            }
+        }
         scrollingList = optionList;
         exportButton = new GuiButton(1, 10, height - 50, exportLabel());
         this.buttonList.add(exportButton);

@@ -1,7 +1,7 @@
 package com.theyugin.nee.proxy;
 
-import com.theyugin.nee.Config;
 import com.theyugin.nee.LoadedMods;
+import com.theyugin.nee.config.Config;
 import com.theyugin.nee.handler.KeyBindingsHandler;
 import com.theyugin.nee.input.KeyBindings;
 import cpw.mods.fml.common.FMLCommonHandler;

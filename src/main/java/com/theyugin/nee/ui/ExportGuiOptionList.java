@@ -2,7 +2,6 @@ package com.theyugin.nee.ui;
 
 import cpw.mods.fml.client.GuiScrollingList;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import lombok.val;
 import net.minecraft.client.gui.GuiButton;
@@ -15,10 +14,9 @@ public class ExportGuiOptionList extends GuiScrollingList {
     private final List<ExportGuiOption> options = new ArrayList<>();
     private boolean buttonPressed = false;
 
-    public ExportGuiOptionList(GuiScreen parent, int width, int left, ExportGuiOption... options) {
+    public ExportGuiOptionList(GuiScreen parent, int width, int left) {
         super(parent.mc, width, parent.height, 60, parent.height - 60, left, 24);
         this.parent = parent;
-        this.options.addAll(Arrays.asList(options));
     }
 
     public void addOption(ExportGuiOption option) {
