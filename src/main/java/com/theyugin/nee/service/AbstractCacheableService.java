@@ -11,7 +11,7 @@ public abstract class AbstractCacheableService<T> {
      * @param cacheable thing to check or put in cache
      * @return true if exists; false if new
      */
-    protected Boolean putInCache(T cacheable) {
+    protected boolean putInCache(T cacheable) {
         if (cache.contains(cacheable)) {
             return true;
         }

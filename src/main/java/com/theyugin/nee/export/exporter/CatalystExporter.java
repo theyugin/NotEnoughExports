@@ -1,8 +1,7 @@
 package com.theyugin.nee.export.exporter;
 
 import codechicken.nei.recipe.RecipeCatalysts;
-import com.google.inject.Inject;
-import com.theyugin.nee.service.common.ItemService;
+import com.theyugin.nee.service.general.ItemService;
 import com.theyugin.nee.service.vanilla.CatalystService;
 import lombok.val;
 
@@ -22,7 +21,6 @@ public class CatalystExporter extends AbstractExporter {
     private final CatalystService catalystService;
     private final ItemService itemService;
 
-    @Inject
     public CatalystExporter(CatalystService catalystService, ItemService itemService) {
         this.catalystService = catalystService;
         this.itemService = itemService;

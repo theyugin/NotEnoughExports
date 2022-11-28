@@ -1,8 +1,6 @@
-package com.theyugin.nee.service.common;
+package com.theyugin.nee.service.general;
 
 import codechicken.nei.util.NBTJson;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import com.theyugin.nee.config.ExportConfigOption;
 import com.theyugin.nee.data.general.Item;
 import com.theyugin.nee.render.StackRenderer;
@@ -15,11 +13,9 @@ import lombok.SneakyThrows;
 import lombok.val;
 import net.minecraft.item.ItemStack;
 
-@Singleton
 public class ItemService extends AbstractCacheableService<Item> {
     private final PreparedStatement insertStmt;
 
-    @Inject
     @SneakyThrows
     public ItemService(@NonNull Connection conn) {
         insertStmt = conn.prepareStatement(
@@ -40,11 +36,7 @@ public class ItemService extends AbstractCacheableService<Item> {
             registryName = String.format("%s:*", itemRegistryName);
             displayName = new ItemStack(itemStack.getItem(), 1, 0).getDisplayName() + " (wildcard)";
         }
-        val item = Item.builder()
-                .registryName(registryName)
-                .displayName(displayName)
-                .nbt(nbt)
-                .build();
+        val item = new Item(registryName, displayName, nbt);
         if (putInCache(item)) {
             return item;
         }

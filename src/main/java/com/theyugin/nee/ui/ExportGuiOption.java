@@ -9,7 +9,7 @@ public class ExportGuiOption {
     private final String name;
     private final Supplier<Boolean> valueSupplier;
 
-    public Boolean isEnabled() {
+    public boolean isEnabled() {
         return valueSupplier.get();
     }
 

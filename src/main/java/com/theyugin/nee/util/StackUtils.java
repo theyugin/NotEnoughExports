@@ -68,6 +68,6 @@ public class StackUtils {
                 .filter(StackUtils::isGtConfigCircuit)
                 .findFirst()
                 .map(ItemStack::getItemDamage)
-                .orElse(0);
+                .orElse(-1);
     }
 }

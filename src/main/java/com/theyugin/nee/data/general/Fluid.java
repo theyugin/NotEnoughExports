@@ -3,10 +3,9 @@ package com.theyugin.nee.data.general;
 import lombok.*;
 
 @Data
-@Builder
+@AllArgsConstructor
 public class Fluid {
-    private String registryName;
-    private String displayName;
-    private String nbt;
-    private byte[] icon;
+    private final String registryName;
+    private final String displayName;
+    private final String nbt;
 }

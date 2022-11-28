@@ -2,12 +2,11 @@ package com.theyugin.nee.export.exporter;
 
 import static com.theyugin.nee.LoadedMods.*;
 
-import com.google.inject.Inject;
 import com.theyugin.nee.NotEnoughExports;
 import com.theyugin.nee.data.vanilla.CraftingTableRecipe;
-import com.theyugin.nee.service.common.ItemService;
-import com.theyugin.nee.service.common.OreService;
-import com.theyugin.nee.service.vanilla.CraftingRecipeService;
+import com.theyugin.nee.service.vanilla.VanillaRecipeService;
+import com.theyugin.nee.service.general.ItemService;
+import com.theyugin.nee.service.general.OreService;
 import com.theyugin.nee.util.StackUtils;
 import ic2.api.recipe.IRecipeInput;
 import ic2.api.recipe.RecipeInputOreDict;
@@ -23,7 +22,7 @@ import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
 
-public class CraftingTableExporter extends AbstractExporter {
+public class VanillaExporter extends AbstractExporter {
     private final int total;
 
     @Override
@@ -38,11 +37,9 @@ public class CraftingTableExporter extends AbstractExporter {
 
     private final ItemService itemService;
     private final OreService oreService;
-    private final CraftingRecipeService craftingRecipeService;
+    private final VanillaRecipeService craftingRecipeService;
 
-    @Inject
-    public CraftingTableExporter(
-            ItemService itemService, OreService oreService, CraftingRecipeService craftingRecipeService) {
+    public VanillaExporter(ItemService itemService, OreService oreService, VanillaRecipeService craftingRecipeService) {
         total = CraftingManager.getInstance().getRecipeList().size();
         this.itemService = itemService;
         this.oreService = oreService;
@@ -52,34 +49,34 @@ public class CraftingTableExporter extends AbstractExporter {
     @SuppressWarnings("unchecked")
     private void processInput(CraftingTableRecipe recipe, int slot, Object oInput) {
         if (oInput instanceof ItemStack) {
-            craftingRecipeService.addRecipeInput(recipe, itemService.processItemStack((ItemStack) oInput), slot);
+            craftingRecipeService.addInput(recipe, itemService.processItemStack((ItemStack) oInput), slot);
         } else if (oInput instanceof String) {
             val ore = oreService.process((String) oInput);
             assert ore != null;
-            craftingRecipeService.addRecipeInput(recipe, ore, slot);
+            craftingRecipeService.addInput(recipe, ore, slot);
         } else if (oInput instanceof ArrayList<?>) {
             if (((ArrayList<?>) oInput).stream().allMatch(StackUtils::isItemStack)) {
                 val ore = oreService.process((List<ItemStack>) oInput);
                 if (ore == null) {
                     for (val stack : (List<ItemStack>) oInput) {
-                        craftingRecipeService.addRecipeInput(recipe, itemService.processItemStack(stack), slot);
+                        craftingRecipeService.addInput(recipe, itemService.processItemStack(stack), slot);
                     }
                 } else {
-                    craftingRecipeService.addRecipeInput(recipe, ore, slot);
+                    craftingRecipeService.addInput(recipe, ore, slot);
                 }
 
             } else if (((ArrayList<?>) oInput).stream().allMatch(StackUtils::isIC2InputItemStack)) {
                 for (val input : (ArrayList<ic2.api.recipe.IRecipeInput>) oInput) {
                     if (input instanceof ic2.api.recipe.RecipeInputOreDict) {
-                        craftingRecipeService.addRecipeInput(
+                        craftingRecipeService.addInput(
                                 recipe, oreService.createOrGet(((RecipeInputOreDict) input).input), slot);
                     } else if (input instanceof ic2.api.recipe.RecipeInputItemStack) {
                         for (val itemStack : input.getInputs()) {
-                            craftingRecipeService.addRecipeInput(recipe, itemService.processItemStack(itemStack), slot);
+                            craftingRecipeService.addInput(recipe, itemService.processItemStack(itemStack), slot);
                         }
                     } else if (input instanceof ic2.api.recipe.RecipeInputFluidContainer) {
                         for (val itemStack : input.getInputs()) {
-                            craftingRecipeService.addRecipeInput(recipe, itemService.processItemStack(itemStack), slot);
+                            craftingRecipeService.addInput(recipe, itemService.processItemStack(itemStack), slot);
                         }
                     }
                 }
@@ -89,19 +86,19 @@ public class CraftingTableExporter extends AbstractExporter {
             val ore = oreService.process((ItemStack[]) oInput);
             if (ore == null) {
                 for (val input : (ItemStack[]) oInput) {
-                    craftingRecipeService.addRecipeInput(recipe, itemService.processItemStack(input), slot);
+                    craftingRecipeService.addInput(recipe, itemService.processItemStack(input), slot);
                 }
             } else {
-                craftingRecipeService.addRecipeInput(recipe, ore, slot);
+                craftingRecipeService.addInput(recipe, ore, slot);
             }
         } else if (IC2.isLoaded() && oInput instanceof ic2.api.recipe.IRecipeInput) {
             val ore = oreService.process(((IRecipeInput) oInput).getInputs());
             if (ore == null) {
                 for (val input : ((IRecipeInput) oInput).getInputs()) {
-                    craftingRecipeService.addRecipeInput(recipe, itemService.processItemStack(input), slot);
+                    craftingRecipeService.addInput(recipe, itemService.processItemStack(input), slot);
                 }
             } else {
-                craftingRecipeService.addRecipeInput(recipe, ore, slot);
+                craftingRecipeService.addInput(recipe, ore, slot);
             }
         } else if (AE2.isLoaded() && oInput instanceof appeng.api.recipes.IIngredient) {
             try {
@@ -136,7 +133,7 @@ public class CraftingTableExporter extends AbstractExporter {
         if (o != null) processInputs(shapedRecipe, Arrays.asList(o));
     }
 
-    private Object[] getInputs(IRecipe recipe) {
+    private Object[] getShapedInputs(IRecipe recipe) {
         if (AE2.isLoaded() && recipe instanceof appeng.recipes.game.ShapedRecipe) {
             return ((appeng.recipes.game.ShapedRecipe) recipe).getInput();
         } else if (IC2.isLoaded() && recipe instanceof ic2.core.AdvRecipe) {
@@ -145,7 +142,12 @@ public class CraftingTableExporter extends AbstractExporter {
             return ((ShapedOreRecipe) recipe).getInput();
         } else if (recipe instanceof ShapedRecipes) {
             return ((ShapedRecipes) recipe).recipeItems;
-        } else if (IC2.isLoaded() && recipe instanceof ic2.core.AdvShapelessRecipe) {
+        }
+        return null;
+    }
+
+    private Object[] getShapelessInputs(IRecipe recipe) {
+        if (IC2.isLoaded() && recipe instanceof ic2.core.AdvShapelessRecipe) {
             return ((ic2.core.AdvShapelessRecipe) recipe).input;
         } else if (AE2.isLoaded() && recipe instanceof appeng.recipes.game.ShapelessRecipe) {
             return ((appeng.recipes.game.ShapelessRecipe) recipe).getInput().toArray();
@@ -167,15 +169,24 @@ public class CraftingTableExporter extends AbstractExporter {
             if (oRecipe instanceof IRecipe
                     && ((IRecipe) oRecipe).getRecipeOutput() != null
                     && ((IRecipe) oRecipe).getRecipeOutput().getItem() != null) {
-                val inputs = getInputs((IRecipe) oRecipe);
-
-                if (inputs == null) {
-                    unhandledRecipes.add(oRecipe.getClass().getCanonicalName());
+                val shapelessInputs = getShapelessInputs((IRecipe) oRecipe);
+                val shapedInputs = getShapedInputs((IRecipe) oRecipe);
+                val output = itemService.processItemStack(((IRecipe) oRecipe).getRecipeOutput());
+                Object[] inputs;
+                boolean shaped;
+                if (shapelessInputs != null) {
+                    inputs = shapelessInputs;
+                    shaped = false;
+                } else if (shapedInputs != null) {
+                    inputs = shapedInputs;
+                    shaped = true;
                 } else {
-                    val output = itemService.processItemStack(((IRecipe) oRecipe).getRecipeOutput());
-                    var recipe = craftingRecipeService.createRecipe(output, true);
-                    processInputs(recipe, inputs);
+                    unhandledRecipes.add(oRecipe.getClass().getCanonicalName());
+                    continue;
                 }
+                var recipe = craftingRecipeService.createCraftingRecipe(shaped);
+                craftingRecipeService.addOutput(recipe, output);
+                processInputs(recipe, inputs);
             }
         }
         if (unhandledRecipes.size() > 0) {

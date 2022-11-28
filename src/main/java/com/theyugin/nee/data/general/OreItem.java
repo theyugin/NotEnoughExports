@@ -3,8 +3,8 @@ package com.theyugin.nee.data.general;
 import lombok.*;
 
 @Data
-@Builder
+@AllArgsConstructor
 public class OreItem {
-    private Ore ore;
-    private Item item;
+    private final Ore ore;
+    private final Item item;
 }

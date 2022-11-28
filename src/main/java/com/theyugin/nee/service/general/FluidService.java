@@ -1,27 +1,22 @@
-package com.theyugin.nee.service.common;
+package com.theyugin.nee.service.general;
 
 import codechicken.nei.util.NBTJson;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import com.theyugin.nee.config.ExportConfigOption;
 import com.theyugin.nee.data.general.Fluid;
 import com.theyugin.nee.render.StackRenderer;
 import com.theyugin.nee.service.AbstractCacheableService;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
-@Singleton
 public class FluidService extends AbstractCacheableService<Fluid> {
     private final PreparedStatement insertStmt;
 
-    @Inject
     @SneakyThrows
-    public FluidService(@NonNull Connection conn) {
+    public FluidService(Connection conn) {
         insertStmt = conn.prepareStatement(
                 "insert or ignore into fluid (registry_name, display_name, nbt, icon) values (?, ?, ?, ?)");
     }
@@ -31,11 +26,7 @@ public class FluidService extends AbstractCacheableService<Fluid> {
         val registryName = FluidRegistry.getDefaultFluidName(fluidStack.getFluid());
         val displayName = fluidStack.getLocalizedName();
         val nbt = fluidStack.tag != null ? NBTJson.toJson(fluidStack.tag) : "{}";
-        val fluid = Fluid.builder()
-                .registryName(registryName)
-                .displayName(displayName)
-                .nbt(nbt)
-                .build();
+        val fluid = new Fluid(registryName, displayName, nbt);
         if (putInCache(fluid)) {
             return fluid;
         }

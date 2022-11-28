@@ -1,12 +1,11 @@
 package com.theyugin.nee.data.thaumcraft;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@Builder
+@AllArgsConstructor
 public class Aspect {
-    private String tag;
-    private String name;
-    private byte[] icon;
+    private final String tag;
+    private final String name;
 }

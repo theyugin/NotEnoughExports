@@ -1,7 +1,5 @@
 package com.theyugin.nee.service.vanilla;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import com.theyugin.nee.data.general.Catalyst;
 import com.theyugin.nee.data.general.Item;
 import com.theyugin.nee.service.AbstractCacheableService;
@@ -10,12 +8,10 @@ import java.sql.PreparedStatement;
 import lombok.SneakyThrows;
 import lombok.var;
 
-@Singleton
 public class CatalystService extends AbstractCacheableService<Catalyst> {
     private final PreparedStatement catalystStmt;
     private final PreparedStatement catalystItemStmt;
 
-    @Inject
     @SneakyThrows
     public CatalystService(Connection conn) {
         catalystStmt = conn.prepareStatement("insert or ignore into catalyst (name) values (?)");
@@ -25,7 +21,7 @@ public class CatalystService extends AbstractCacheableService<Catalyst> {
 
     @SneakyThrows
     public Catalyst getOrCreate(String name) {
-        var catalyst = Catalyst.builder().name(name).build();
+        var catalyst = new Catalyst(name);
         if (putInCache(catalyst)) {
             return catalyst;
         }

@@ -1,14 +1,10 @@
 package com.theyugin.nee.export.exporter;
 
-import com.google.inject.Inject;
 import com.theyugin.nee.NotEnoughExports;
 import com.theyugin.nee.data.thaumcraft.CrucibleRecipe;
-import com.theyugin.nee.service.common.ItemService;
-import com.theyugin.nee.service.common.OreService;
-import com.theyugin.nee.service.thaumcraft.ArcaneRecipeService;
-import com.theyugin.nee.service.thaumcraft.AspectService;
-import com.theyugin.nee.service.thaumcraft.CrucibleRecipeService;
-import com.theyugin.nee.service.thaumcraft.InfusionRecipeService;
+import com.theyugin.nee.service.general.ItemService;
+import com.theyugin.nee.service.general.OreService;
+import com.theyugin.nee.service.thaumcraft.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -25,10 +21,8 @@ public class ThaumcraftExporter extends AbstractExporter {
     private final int total;
     private final AspectService aspectService;
     private final ItemService itemService;
-    private final CrucibleRecipeService crucibleRecipeService;
     private final OreService oreService;
-    private final InfusionRecipeService infusionRecipeService;
-    private final ArcaneRecipeService arcaneRecipeService;
+    private final ThaumcraftRecipeService thaumcraftRecipeService;
 
     @Override
     public int total() {
@@ -45,11 +39,12 @@ public class ThaumcraftExporter extends AbstractExporter {
         val output = itemService.processItemStack(crucibleRecipe.getRecipeOutput());
         CrucibleRecipe recipe;
         if (crucibleRecipe.catalyst instanceof ItemStack) {
-            recipe = crucibleRecipeService.createRecipe(
-                    itemService.processItemStack((ItemStack) crucibleRecipe.catalyst), output);
+            recipe = thaumcraftRecipeService.createCrucibleRecipe();
+            thaumcraftRecipeService.addInput(recipe, itemService.processItemStack((ItemStack) crucibleRecipe.catalyst));
+            thaumcraftRecipeService.addOutput(recipe, output);
         } else if (crucibleRecipe.catalyst instanceof ArrayList) {
-            recipe = crucibleRecipeService.createRecipe(
-                    oreService.process((List<ItemStack>) crucibleRecipe.catalyst), output);
+            recipe = thaumcraftRecipeService.createCrucibleRecipe();
+            thaumcraftRecipeService.addInput(recipe, oreService.process((List<ItemStack>) crucibleRecipe.catalyst));
         } else {
             NotEnoughExports.warn(String.format(
                     "Unknown crucible recipe input type : %s",
@@ -57,7 +52,7 @@ public class ThaumcraftExporter extends AbstractExporter {
             return;
         }
         for (val aspect : crucibleRecipe.aspects.aspects.entrySet()) {
-            crucibleRecipeService.addAspect(recipe, aspectService.processAspect(aspect.getKey()), aspect.getValue());
+            thaumcraftRecipeService.addInput(recipe, aspectService.processAspect(aspect.getKey()), aspect.getValue());
         }
     }
 
@@ -84,34 +79,36 @@ public class ThaumcraftExporter extends AbstractExporter {
             }
             return;
         }
-        val recipe = infusionRecipeService.createRecipe(
-                itemService.processItemStack(input),
-                itemService.processItemStack(output),
-                infusionRecipe.getResearch(),
-                infusionRecipe.getInstability());
-        for (val component : infusionRecipe.getComponents()) {
-            infusionRecipeService.addComponent(recipe, itemService.processItemStack(component));
+        val recipe = thaumcraftRecipeService.createInfusionRecipe(
+                infusionRecipe.getResearch(), infusionRecipe.getInstability());
+        thaumcraftRecipeService.addInput(recipe, itemService.processItemStack(infusionRecipe.getRecipeInput()));
+        thaumcraftRecipeService.addOutput(recipe, itemService.processItemStack(output));
+        val components = Arrays.asList(infusionRecipe.getComponents()).listIterator();
+        while (components.hasNext()) {
+            val slot = components.nextIndex() + 1;
+            thaumcraftRecipeService.addInput(recipe, itemService.processItemStack(components.next()), slot);
         }
         for (val aspect : infusionRecipe.getAspects().aspects.entrySet()) {
-            infusionRecipeService.addAspect(recipe, aspectService.processAspect(aspect.getKey()), aspect.getValue());
+            thaumcraftRecipeService.addInput(recipe, aspectService.processAspect(aspect.getKey()), aspect.getValue());
         }
     }
 
     @SuppressWarnings("unchecked")
     private void processArcaneRecipe(List<?> inputs, ItemStack output, AspectList aspectList, boolean shaped) {
-        val recipe = arcaneRecipeService.createRecipe(itemService.processItemStack(output), shaped);
+        val recipe = thaumcraftRecipeService.createArcaneRecipe(shaped);
+        thaumcraftRecipeService.addOutput(recipe, itemService.processItemStack(output));
         val inputsIterator = inputs.listIterator();
         while (inputsIterator.hasNext()) {
             val slot = inputsIterator.nextIndex();
             val input = inputsIterator.next();
             if (input instanceof ItemStack) {
-                arcaneRecipeService.addInput(recipe, itemService.processItemStack((ItemStack) input), slot);
+                thaumcraftRecipeService.addInput(recipe, itemService.processItemStack((ItemStack) input), slot);
             } else if (input instanceof List<?>) {
-                arcaneRecipeService.addInput(recipe, oreService.process((List<ItemStack>) input), slot);
+                thaumcraftRecipeService.addInput(recipe, oreService.process((List<ItemStack>) input), slot);
             }
         }
         for (val aspect : aspectList.aspects.entrySet()) {
-            arcaneRecipeService.addAspect(recipe, aspectService.processAspect(aspect.getKey()), aspect.getValue());
+            thaumcraftRecipeService.addInput(recipe, aspectService.processAspect(aspect.getKey()), aspect.getValue());
         }
     }
 
@@ -148,20 +145,15 @@ public class ThaumcraftExporter extends AbstractExporter {
         NotEnoughExports.info(uncheckedTypes.toString());
     }
 
-    @Inject
     public ThaumcraftExporter(
             AspectService aspectService,
             ItemService itemService,
             OreService oreService,
-            CrucibleRecipeService crucibleRecipeService,
-            InfusionRecipeService infusionRecipeService,
-            ArcaneRecipeService arcaneRecipeService) {
+            ThaumcraftRecipeService thaumcraftRecipeService) {
         this.aspectService = aspectService;
         this.itemService = itemService;
         this.oreService = oreService;
-        this.crucibleRecipeService = crucibleRecipeService;
-        this.infusionRecipeService = infusionRecipeService;
-        this.arcaneRecipeService = arcaneRecipeService;
+        this.thaumcraftRecipeService = thaumcraftRecipeService;
         total = ThaumcraftApi.getCraftingRecipes().size();
     }
 }

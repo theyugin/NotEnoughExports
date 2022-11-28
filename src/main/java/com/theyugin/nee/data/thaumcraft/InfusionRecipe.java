@@ -1,15 +1,13 @@
 package com.theyugin.nee.data.thaumcraft;
 
-import com.theyugin.nee.data.general.Item;
-import lombok.Builder;
+import com.theyugin.nee.data.IRecipe;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@Builder
-public class InfusionRecipe {
-    private Integer id;
-    private String research;
-    private Integer instability;
-    private Item input;
-    private Item output;
+@AllArgsConstructor
+public class InfusionRecipe implements IRecipe {
+    private final int id;
+    private final String research;
+    private final int instability;
 }

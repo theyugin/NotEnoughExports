@@ -1,12 +1,11 @@
 package com.theyugin.nee.data.vanilla;
 
-import com.theyugin.nee.data.general.Item;
+import com.theyugin.nee.data.IRecipe;
 import lombok.*;
 
 @Data
-@Builder
-public class CraftingTableRecipe {
-    private int id;
-    private boolean shaped;
-    private final Item outputItem;
+@AllArgsConstructor
+public class CraftingTableRecipe implements IRecipe {
+    private final int id;
+    private final boolean shaped;
 }

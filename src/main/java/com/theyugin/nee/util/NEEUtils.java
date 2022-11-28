@@ -22,6 +22,7 @@ public class NEEUtils {
         config.enforceForeignKeys(true);
         val ds = new SQLiteDataSource(config);
         ds.setUrl("jdbc:sqlite:nee.sqlite3");
+        ds.getConnection();
         return ProxyDataSourceBuilder.create(ds).countQuery().build().getConnection();
     }
 }

@@ -3,7 +3,7 @@ package com.theyugin.nee.data.general;
 import lombok.*;
 
 @Data
-@Builder
+@AllArgsConstructor
 public class Ore {
-    private String name;
+    private final String name;
 }

@@ -1,7 +1,5 @@
-package com.theyugin.nee.service.common;
+package com.theyugin.nee.service.general;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import com.theyugin.nee.data.general.Item;
 import com.theyugin.nee.data.general.Ore;
 import com.theyugin.nee.data.general.OreItem;
@@ -16,14 +14,12 @@ import lombok.SneakyThrows;
 import lombok.val;
 import net.minecraft.item.ItemStack;
 
-@Singleton
 public class OreService extends AbstractCacheableService<Ore> {
     private final ItemService itemService;
     private final Set<OreItem> oreItemCache = new HashSet<>();
     private final PreparedStatement insertOreStmt;
     private final PreparedStatement insertOreItemStmt;
 
-    @Inject
     @SneakyThrows
     public OreService(@NonNull Connection conn, ItemService itemService) {
         this.itemService = itemService;
@@ -34,7 +30,7 @@ public class OreService extends AbstractCacheableService<Ore> {
 
     @SneakyThrows
     public Ore createOrGet(String name) {
-        val ore = Ore.builder().name(name).build();
+        val ore = new Ore(name);
         if (putInCache(ore)) {
             return ore;
         }
@@ -45,7 +41,7 @@ public class OreService extends AbstractCacheableService<Ore> {
 
     @SneakyThrows
     public void addItem(Ore ore, Item item) {
-        val oreItem = OreItem.builder().ore(ore).item(item).build();
+        val oreItem = new OreItem(ore, item);
         if (oreItemCache.contains(oreItem)) {
             return;
         }
