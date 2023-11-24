@@ -1,7 +1,8 @@
 package com.theyugin.nee.config;
 
-import com.theyugin.nee.Tags;
 import java.io.File;
+
+import com.theyugin.nee.Tags;
 import lombok.val;
 import net.minecraftforge.common.config.Configuration;
 

@@ -16,6 +16,7 @@ repositories {
         url 'https://jitpack.io'
     }
 
+/*
     maven {
         name = "ic2"
         url = "https://maven.ic2.player.to/"
@@ -32,4 +33,5 @@ repositories {
             artifact()
         }
     }
+*/
 }
